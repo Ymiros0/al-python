@@ -1,0 +1,232 @@
+local var_0_0 = class("FiveAnniversaryPage", import("...base.BaseActivityPage"))
+local var_0_1 = 42
+local var_0_2 = {}
+local var_0_3 = 3.5
+local var_0_4 = 1
+local var_0_5 = 6
+local var_0_6 = SCENE.BACKHILL_CAMPUSFESTIVAL_2022
+
+def var_0_0.OnInit(arg_1_0):
+	arg_1_0.hideIndex = {}
+	arg_1_0.scrollAble = False
+
+	local var_1_0 = findTF(arg_1_0._tf, "BtnList")
+
+	if PLATFORM_CODE == PLATFORM_CH:
+		var_0_2 = {
+			2,
+			3,
+			5,
+			8
+		}
+	elif PLATFORM_CODE == PLATFORM_CHT:
+		var_0_2 = {
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+			11
+		}
+	else
+		var_0_2 = {
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7,
+			8,
+			9,
+			10
+		}
+
+	if PLATFORM_CODE == PLATFORM_JP or PLATFORM_CODE == PLATFORM_CHT:
+		arg_1_0.hideIndex = {}
+		arg_1_0.scrollAble = True
+		var_1_0.anchoredPosition = Vector2(-11, -20)
+		var_1_0.sizeDelta = Vector2(1437, 90)
+	elif PLATFORM_CODE == PLATFORM_US:
+		arg_1_0.hideIndex = {
+			1,
+			2,
+			5,
+			6
+		}
+		arg_1_0.scrollAble = False
+		var_1_0.anchoredPosition = Vector2(678, -20)
+		var_1_0.sizeDelta = Vector2(1186, 90)
+	else
+		arg_1_0.hideIndex = {
+			5,
+			6
+		}
+		arg_1_0.scrollAble = False
+		var_1_0.anchoredPosition = Vector2(115, -20)
+		var_1_0.sizeDelta = Vector2(1186, 90)
+
+	arg_1_0.findUI()
+	arg_1_0.initData()
+
+def var_0_0.findUI(arg_2_0):
+	arg_2_0.paintBackTF = arg_2_0.findTF("Paints/PaintBack")
+	arg_2_0.paintFrontTF = arg_2_0.findTF("Paints/PaintFront")
+	arg_2_0.skinShopBtn = arg_2_0.findTF("BtnShop")
+	arg_2_0.btnContainer = arg_2_0.findTF("BtnList/Viewport/Content")
+
+	local var_2_0 = arg_2_0.btnContainer.childCount / 3
+
+	arg_2_0.btnList1 = {}
+
+	for iter_2_0 = 0, var_2_0 - 1:
+		arg_2_0.btnList1[iter_2_0 + 1] = arg_2_0.btnContainer.GetChild(iter_2_0)
+
+	arg_2_0.btnList2 = {}
+
+	for iter_2_1 = var_2_0, 2 * var_2_0 - 1:
+		arg_2_0.btnList2[#arg_2_0.btnList2 + 1] = arg_2_0.btnContainer.GetChild(iter_2_1)
+
+	arg_2_0.btnList3 = {}
+
+	for iter_2_2 = var_2_0 * 2, 3 * var_2_0 - 1:
+		arg_2_0.btnList3[#arg_2_0.btnList3 + 1] = arg_2_0.btnContainer.GetChild(iter_2_2)
+
+	for iter_2_3 = 1, var_2_0 * 3:
+		if table.contains(arg_2_0.hideIndex, (iter_2_3 - 1) % var_0_5 + 1) or not arg_2_0.scrollAble and iter_2_3 > var_0_5:
+			setActive(arg_2_0.btnContainer.GetChild(iter_2_3 - 1), False)
+
+	arg_2_0.gridLayoutGroupCom = GetComponent(arg_2_0.btnContainer, "GridLayoutGroup")
+
+def var_0_0.initData(arg_3_0):
+	arg_3_0.paintCount = #var_0_2
+	arg_3_0.curPaintIndex = 1
+	arg_3_0.paintSwitchTime = var_0_4
+	arg_3_0.paintStaticTime = var_0_3
+	arg_3_0.paintStaticCountValue = 0
+	arg_3_0.paintPathPrefix = "clutter/"
+	arg_3_0.paintNamePrefix = "fivea"
+	arg_3_0.btnCount = arg_3_0.btnContainer.childCount / 3
+	arg_3_0.btnSpeed = 50
+	arg_3_0.btnSizeX = arg_3_0.gridLayoutGroupCom.cellSize.x
+	arg_3_0.btnMarginX = arg_3_0.gridLayoutGroupCom.spacing.x
+	arg_3_0.moveLength = (arg_3_0.btnCount - #arg_3_0.hideIndex) * (arg_3_0.btnSizeX + arg_3_0.btnMarginX)
+	arg_3_0.startAnchoredPosX = arg_3_0.btnContainer.anchoredPosition.x
+
+def var_0_0.switchNextPaint(arg_4_0):
+	arg_4_0.frameTimer.Stop()
+
+	local var_4_0 = arg_4_0.curPaintIndex % arg_4_0.paintCount + 1
+	local var_4_1 = arg_4_0.paintNamePrefix .. var_0_2[var_4_0]
+	local var_4_2 = arg_4_0.paintPathPrefix .. var_4_1
+
+	setImageSprite(arg_4_0.paintBackTF, LoadSprite(var_4_2, var_4_1))
+	LeanTween.value(go(arg_4_0.paintFrontTF), 1, 0, arg_4_0.paintSwitchTime).setOnUpdate(System.Action_float(function(arg_5_0)
+		setImageAlpha(arg_4_0.paintFrontTF, arg_5_0)
+		setImageAlpha(arg_4_0.paintBackTF, 1 - arg_5_0))).setOnComplete(System.Action(function()
+		setImageFromImage(arg_4_0.paintFrontTF, arg_4_0.paintBackTF)
+		setImageAlpha(arg_4_0.paintFrontTF, 1)
+		setImageAlpha(arg_4_0.paintBackTF, 0)
+
+		arg_4_0.curPaintIndex = var_4_0
+
+		arg_4_0.frameTimer.Start()))
+
+def var_0_0.OnFirstFlush(arg_7_0):
+	onButton(arg_7_0, arg_7_0.skinShopBtn, function()
+		arg_7_0.emit(ActivityMediator.EVENT_GO_SCENE, SCENE.SKINSHOP))
+	arg_7_0.initPaint()
+	arg_7_0.initBtnList(arg_7_0.btnList1)
+	arg_7_0.initBtnList(arg_7_0.btnList2)
+	arg_7_0.initBtnList(arg_7_0.btnList3)
+	arg_7_0.initTimer()
+
+def var_0_0.initPaint(arg_9_0):
+	local var_9_0 = (arg_9_0.curPaintIndex - 1) % arg_9_0.paintCount + 1
+	local var_9_1 = arg_9_0.paintNamePrefix .. var_0_2[var_9_0]
+	local var_9_2 = arg_9_0.paintPathPrefix .. var_9_1
+
+	setImageSprite(arg_9_0.paintFrontTF, LoadSprite(var_9_2, var_9_1))
+
+	local var_9_3 = arg_9_0.paintNamePrefix .. var_0_2[var_9_0]
+	local var_9_4 = arg_9_0.paintPathPrefix .. var_9_3
+
+	setImageSprite(arg_9_0.paintBackTF, LoadSprite(var_9_4, var_9_3))
+
+def var_0_0.initBtnList(arg_10_0, arg_10_1):
+	for iter_10_0 = 1, #arg_10_1:
+		arg_10_0.initBtnEvent(arg_10_1[iter_10_0], iter_10_0)
+
+def var_0_0.initBtnEvent(arg_11_0, arg_11_1, arg_11_2):
+	if arg_11_2 == 1:
+		onButton(arg_11_0, arg_11_1, function()
+			arg_11_0.emit(ActivityMediator.GO_PRAY_POOL), SFX_PANEL)
+	elif arg_11_2 == 2:
+		onButton(arg_11_0, arg_11_1, function()
+			if PLATFORM_CODE == PLATFORM_CHT:
+				arg_11_0.emit(ActivityMediator.SELECT_ACTIVITY, 41327)
+			else
+				arg_11_0.emit(ActivityMediator.SELECT_ACTIVITY, ActivityConst.ACTIVITY_TYPE_RETURN_AWARD_ID5), SFX_PANEL)
+	elif arg_11_2 == 3:
+		onButton(arg_11_0, arg_11_1, function()
+			if PLATFORM_CODE == PLATFORM_CHT:
+				arg_11_0.emit(ActivityMediator.EVENT_GO_SCENE, SCENE.SIXTH_ANNIVERSARY_JP)
+			else
+				arg_11_0.emit(ActivityMediator.EVENT_GO_SCENE, var_0_6), SFX_PANEL)
+	elif arg_11_2 == 4:
+		onButton(arg_11_0, arg_11_1, function()
+			if PLATFORM_CODE == PLATFORM_CHT:
+				arg_11_0.emit(ActivityMediator.EVENT_GO_SCENE, SCENE.SIXTH_ANNIVERSARY_JP_DARK)
+			else
+				arg_11_0.emit(ActivityMediator.GO_MINI_GAME, var_0_1), SFX_PANEL)
+	elif arg_11_2 == 5:
+		onButton(arg_11_0, arg_11_1, function()
+			arg_11_0.emit(ActivityMediator.EVENT_GO_SCENE, SCENE.SUMMARY), SFX_PANEL)
+	elif arg_11_2 == 6:
+		onButton(arg_11_0, arg_11_1, function()
+			arg_11_0.emit(ActivityMediator.EVENT_GO_SCENE, SCENE.CHARGE, {
+				wrap = ChargeScene.TYPE_DIAMOND
+			}), SFX_PANEL)
+
+def var_0_0.initTimer(arg_18_0):
+	local var_18_0 = 0.016666666666666666
+
+	arg_18_0.paintStaticCountValue = 0
+	arg_18_0.frameTimer = Timer.New(function()
+		arg_18_0.paintStaticCountValue = arg_18_0.paintStaticCountValue + var_18_0
+
+		if arg_18_0.paintStaticCountValue >= arg_18_0.paintStaticTime:
+			arg_18_0.paintStaticCountValue = 0
+
+			arg_18_0.switchNextPaint(), var_18_0, -1, False)
+
+	arg_18_0.frameTimer.Start()
+
+	if arg_18_0.scrollAble:
+		arg_18_0.frameTimer2 = Timer.New(function()
+			local var_20_0 = arg_18_0.btnContainer.anchoredPosition.x - arg_18_0.btnSpeed * var_18_0
+
+			if arg_18_0.startAnchoredPosX - var_20_0 >= arg_18_0.moveLength:
+				var_20_0 = arg_18_0.btnContainer.anchoredPosition.x + arg_18_0.moveLength
+
+			arg_18_0.btnContainer.anchoredPosition = Vector3(var_20_0, 0, 0), var_18_0, -1, False)
+
+		arg_18_0.frameTimer2.Start()
+
+def var_0_0.OnDestroy(arg_21_0):
+	if arg_21_0.frameTimer:
+		arg_21_0.frameTimer.Stop()
+
+		arg_21_0.frameTimer = None
+
+	if arg_21_0.frameTimer2:
+		arg_21_0.frameTimer2.Stop()
+
+		arg_21_0.frameTimer2 = None
+
+return var_0_0

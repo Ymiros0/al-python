@@ -1,0 +1,353 @@
+local var_0_0 = class("CardPuzzleShip", BaseVO)
+
+def var_0_0.getShipArmor(arg_1_0):
+	return arg_1_0.getConfig("armor")
+
+def var_0_0.getShipArmorName(arg_2_0):
+	local var_2_0 = arg_2_0.getShipArmor()
+
+	return ArmorType.Type2Name(var_2_0)
+
+def var_0_0.getGroupId(arg_3_0):
+	return pg.ship_data_template[arg_3_0.configId].group_type
+
+def var_0_0.getGroupIdByConfigId(arg_4_0):
+	return math.floor(arg_4_0 / 10)
+
+def var_0_0.getShipType(arg_5_0):
+	return pg.ship_data_statistics[arg_5_0.configId].type
+
+def var_0_0.getNation(arg_6_0):
+	assert(False)
+
+def var_0_0.getPaintingName(arg_7_0):
+	local var_7_0 = pg.ship_data_statistics[arg_7_0].skin_id
+	local var_7_1 = pg.ship_skin_template[var_7_0]
+
+	assert(var_7_1, "ship_skin_template not exist. " .. arg_7_0 .. " " .. var_7_0)
+
+	return var_7_1.painting
+
+def var_0_0.getName(arg_8_0):
+	return pg.ship_data_statistics[arg_8_0.configId].name
+
+def var_0_0.getShipName(arg_9_0):
+	return pg.ship_data_statistics[arg_9_0].name
+
+def var_0_0.Ctor(arg_10_0, arg_10_1):
+	arg_10_0.configId = arg_10_1.template_id or arg_10_1.configId
+	arg_10_0.level = arg_10_1.level
+	arg_10_0.exp = arg_10_1.exp
+
+	if arg_10_1.name and arg_10_1.name != "":
+		arg_10_0.name = arg_10_1.name
+	else
+		assert(pg.ship_data_statistics[arg_10_0.configId], "必须存在配置" .. arg_10_0.configId)
+
+		arg_10_0.name = pg.ship_data_statistics[arg_10_0.configId].name
+
+	arg_10_0.equipmentSkins = {}
+	arg_10_0.equipments = {}
+
+	if arg_10_1.equip_info_list:
+		for iter_10_0, iter_10_1 in ipairs(arg_10_1.equip_info_list or {}):
+			arg_10_0.equipments[iter_10_0] = iter_10_1.id > 0 and Equipment.New({
+				count = 1,
+				id = iter_10_1.id,
+				config_id = iter_10_1.id,
+				skinId = iter_10_1.skinId
+			}) or False
+			arg_10_0.equipmentSkins[iter_10_0] = iter_10_1.skinId > 0 and iter_10_1.skinId or 0
+
+			arg_10_0.reletiveEquipSkin(iter_10_0)
+
+	arg_10_0.skills = {}
+
+	for iter_10_2, iter_10_3 in ipairs(arg_10_1.skill_id_list or {}):
+		arg_10_0.updateSkill(iter_10_3)
+
+	arg_10_0.star = arg_10_0.getConfig("rarity")
+	arg_10_0.transforms = {}
+
+	if not HXSet.isHxSkin():
+		arg_10_0.skinId = arg_10_1.skin_id or 0
+	else
+		arg_10_0.skinId = 0
+
+	if arg_10_0.skinId == 0:
+		arg_10_0.skinId = arg_10_0.getConfig("skin_id")
+
+def var_0_0.getActiveEquipments(arg_11_0):
+	local var_11_0 = Clone(arg_11_0.equipments)
+
+	for iter_11_0 = #var_11_0, 1, -1:
+		local var_11_1 = var_11_0[iter_11_0]
+
+		if var_11_1:
+			for iter_11_1 = 1, iter_11_0 - 1:
+				local var_11_2 = var_11_0[iter_11_1]
+
+				if var_11_2 and var_11_1.getConfig("equip_limit") != 0 and var_11_2.getConfig("equip_limit") == var_11_1.getConfig("equip_limit"):
+					var_11_0[iter_11_0] = False
+
+	return var_11_0
+
+def var_0_0.getAllEquipments(arg_12_0):
+	return arg_12_0.equipments
+
+def var_0_0.updateSkinId(arg_13_0, arg_13_1):
+	arg_13_0.skinId = arg_13_1
+
+def var_0_0.getPrefab(arg_14_0):
+	local var_14_0 = arg_14_0.skinId
+	local var_14_1 = pg.ship_skin_template[var_14_0]
+
+	assert(var_14_1, "ship_skin_template not exist. " .. arg_14_0.configId .. " " .. var_14_0)
+
+	return var_14_1.prefab
+
+def var_0_0.getPainting(arg_15_0):
+	local var_15_0 = pg.ship_skin_template[arg_15_0.skinId]
+
+	assert(var_15_0, "ship_skin_template not exist. " .. arg_15_0.configId .. " " .. arg_15_0.skinId)
+
+	return var_15_0.painting
+
+def var_0_0.GetSkinConfig(arg_16_0):
+	local var_16_0 = pg.ship_skin_template[arg_16_0.skinId]
+
+	assert(var_16_0, "ship_skin_template not exist. " .. arg_16_0.configId .. " " .. arg_16_0.skinId)
+
+	return var_16_0
+
+def var_0_0.updateEquip(arg_17_0, arg_17_1, arg_17_2):
+	assert(arg_17_2 == None or arg_17_2.count == 1)
+
+	local var_17_0 = arg_17_0.equipments[arg_17_1]
+
+	arg_17_0.equipments[arg_17_1] = arg_17_2 and Clone(arg_17_2) or False
+
+def var_0_0.getEquip(arg_18_0, arg_18_1):
+	return Clone(arg_18_0.equipments[arg_18_1])
+
+def var_0_0.bindConfigTable(arg_19_0):
+	return pg.puzzle_ship_template
+
+def var_0_0.isAvaiable(arg_20_0):
+	return True
+
+var_0_0.PROPERTIES = {
+	AttributeType.Durability,
+	AttributeType.Cannon,
+	AttributeType.Torpedo,
+	AttributeType.AntiAircraft,
+	AttributeType.AntiSub,
+	AttributeType.Air,
+	AttributeType.Reload,
+	AttributeType.Armor,
+	AttributeType.Hit,
+	AttributeType.Speed,
+	AttributeType.Dodge,
+	AttributeType.Luck
+}
+var_0_0.DIVE_PROPERTIES = {
+	AttributeType.OxyMax,
+	AttributeType.OxyCost,
+	AttributeType.OxyRecovery,
+	AttributeType.OxyRecoveryBench,
+	AttributeType.OxyAttackDuration,
+	AttributeType.OxyRaidDistance
+}
+var_0_0.SONAR_PROPERTIES = {
+	AttributeType.SonarRange
+}
+
+def var_0_0.getShipProperties(arg_21_0):
+	return (arg_21_0.getBaseProperties())
+
+def var_0_0.getBaseProperties(arg_22_0):
+	local var_22_0 = arg_22_0.getConfigTable()
+
+	assert(var_22_0, "配置表没有这艘船" .. arg_22_0.configId)
+
+	local var_22_1 = {}
+
+	for iter_22_0, iter_22_1 in ipairs(var_0_0.PROPERTIES):
+		var_22_1[iter_22_1] = var_22_0[iter_22_1]
+
+	for iter_22_2, iter_22_3 in ipairs(var_0_0.DIVE_PROPERTIES):
+		var_22_1[iter_22_3] = 0
+
+	for iter_22_4, iter_22_5 in ipairs(var_0_0.SONAR_PROPERTIES):
+		var_22_1[iter_22_5] = 0
+
+	return var_22_1
+
+def var_0_0.getGiftProperties(arg_23_0, arg_23_1):
+	local var_23_0 = {}
+
+	for iter_23_0, iter_23_1 in ipairs(var_0_0.PROPERTIES):
+		var_23_0[iter_23_1] = 0
+
+	for iter_23_2, iter_23_3 in ipairs(var_0_0.DIVE_PROPERTIES):
+		var_23_0[iter_23_3] = 0
+
+	for iter_23_4, iter_23_5 in ipairs(var_0_0.SONAR_PROPERTIES):
+		var_23_0[iter_23_5] = 0
+
+	for iter_23_6, iter_23_7 in ipairs(arg_23_1):
+		if iter_23_7:
+			local var_23_1 = iter_23_7.GetAttributeBonus(arg_23_0)
+
+			for iter_23_8, iter_23_9 in ipairs(var_23_1):
+				if iter_23_9 and var_23_0[iter_23_9.type]:
+					var_23_0[iter_23_9.type] = var_23_0[iter_23_9.type] + iter_23_9.value
+
+	return var_23_0
+
+def var_0_0.getProperties(arg_24_0, arg_24_1):
+	local var_24_0 = arg_24_0.getShipProperties()
+	local var_24_1 = arg_24_0.getGiftProperties(arg_24_1)
+
+	for iter_24_0, iter_24_1 in ipairs(var_0_0.PROPERTIES):
+		if iter_24_1 == AttributeType.Speed:
+			var_24_0[iter_24_1] = var_24_0[iter_24_1] + var_24_1[iter_24_1]
+		else
+			var_24_0[iter_24_1] = calcFloor(var_24_0[iter_24_1] + var_24_1[iter_24_1])
+
+	for iter_24_2, iter_24_3 in ipairs(var_0_0.DIVE_PROPERTIES):
+		var_24_0[iter_24_3] = var_24_0[iter_24_3] + var_24_1[iter_24_3]
+
+	for iter_24_4, iter_24_5 in ipairs(var_0_0.SONAR_PROPERTIES):
+		var_24_0[iter_24_5] = var_24_0[iter_24_5] + var_24_1[iter_24_5]
+
+	return var_24_0
+
+def var_0_0.getTriggerSkills(arg_25_0):
+	local var_25_0 = {}
+	local var_25_1 = arg_25_0.getSkillEffects()
+
+	_.each(var_25_1, function(arg_26_0)
+		if arg_26_0.type == "AddBuff" and arg_26_0.arg_list and arg_26_0.arg_list.buff_id:
+			local var_26_0 = arg_26_0.arg_list.buff_id
+
+			var_25_0[var_26_0] = {
+				id = var_26_0,
+				level = arg_26_0.level
+			})
+
+	return var_25_0
+
+def var_0_0.GetEquipmentSkills(arg_27_0):
+	local var_27_0 = {}
+	local var_27_1 = arg_27_0.getActiveEquipments()
+
+	for iter_27_0, iter_27_1 in ipairs(var_27_1):
+		if iter_27_1:
+			local var_27_2 = iter_27_1.getConfig("skill_id")[1]
+
+			if var_27_2:
+				var_27_0[var_27_2] = {
+					level = 1,
+					id = var_27_2
+				}
+
+	return var_27_0
+
+def var_0_0.getAllSkills(arg_28_0):
+	local var_28_0 = Clone(arg_28_0.skills)
+
+	for iter_28_0, iter_28_1 in pairs(arg_28_0.GetEquipmentSkills()):
+		var_28_0[iter_28_0] = iter_28_1
+
+	for iter_28_2, iter_28_3 in pairs(arg_28_0.getTriggerSkills()):
+		var_28_0[iter_28_2] = iter_28_3
+
+	return var_28_0
+
+def var_0_0.getRarity(arg_29_0):
+	assert(False)
+
+def var_0_0.getExchangePrice(arg_30_0):
+	assert(False)
+
+def var_0_0.upgrade(arg_31_0):
+	assert(False)
+
+def var_0_0.getTeamType(arg_32_0):
+	return TeamType.GetTeamFromShipType(arg_32_0.getShipType())
+
+def var_0_0.getMaxConfigId(arg_33_0):
+	local var_33_0 = pg.ship_data_template
+	local var_33_1
+
+	for iter_33_0 = 4, 1, -1:
+		local var_33_2 = tonumber(arg_33_0.groupId .. iter_33_0)
+
+		if var_33_0[var_33_2]:
+			var_33_1 = var_33_2
+
+			break
+
+	return var_33_1
+
+def var_0_0.fateSkillChange(arg_34_0, arg_34_1):
+	if not arg_34_0.skillChangeList:
+		arg_34_0.skillChangeList = arg_34_0.isBluePrintShip() and arg_34_0.getBluePrint().getChangeSkillList() or {}
+
+	for iter_34_0, iter_34_1 in ipairs(arg_34_0.skillChangeList):
+		if iter_34_1[1] == arg_34_1 and arg_34_0.skills[iter_34_1[2]]:
+			return iter_34_1[2]
+
+	return arg_34_1
+
+def var_0_0.getSkillList(arg_35_0):
+	local var_35_0 = pg.ship_data_template[arg_35_0.configId]
+	local var_35_1 = Clone(var_35_0.buff_list_display)
+	local var_35_2 = Clone(var_35_0.buff_list)
+	local var_35_3 = pg.ship_data_trans[arg_35_0.groupId]
+	local var_35_4 = 0
+
+	if var_35_3 and var_35_3.skill_id != 0:
+		local var_35_5 = var_35_3.skill_id
+		local var_35_6 = pg.transform_data_template[var_35_5]
+
+		if arg_35_0.transforms[var_35_5] and var_35_6.skill_id != 0:
+			table.insert(var_35_2, var_35_6.skill_id)
+
+	local var_35_7 = {}
+
+	for iter_35_0, iter_35_1 in ipairs(var_35_1):
+		for iter_35_2, iter_35_3 in ipairs(var_35_2):
+			if iter_35_1 == iter_35_3:
+				table.insert(var_35_7, arg_35_0.fateSkillChange(iter_35_1))
+
+	return var_35_7
+
+def var_0_0.getDisplaySkillIds(arg_36_0):
+	return _.map(pg.ship_data_template[arg_36_0.configId].buff_list_display, function(arg_37_0)
+		return arg_36_0.fateSkillChange(arg_37_0))
+
+def var_0_0.getSkillIndex(arg_38_0, arg_38_1):
+	local var_38_0 = arg_38_0.getSkillList()
+
+	for iter_38_0, iter_38_1 in ipairs(var_38_0):
+		if arg_38_1 == iter_38_1:
+			return iter_38_0
+
+def var_0_0.IsBgmSkin(arg_39_0):
+	local var_39_0 = arg_39_0.GetSkinConfig()
+
+	return table.contains(var_39_0.tag, ShipSkin.WITH_BGM)
+
+def var_0_0.GetSkinBgm(arg_40_0):
+	if arg_40_0.IsBgmSkin():
+		return arg_40_0.GetSkinConfig().bgm
+
+def var_0_0.GetConfigId(arg_41_0):
+	return arg_41_0.configId
+
+def var_0_0.GetDefaultCards(arg_42_0):
+	return arg_42_0.getConfig("default_card")
+
+return var_0_0

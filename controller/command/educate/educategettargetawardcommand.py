@@ -1,0 +1,21 @@
+local var_0_0 = class("EducateGetTargetAwardCommand", pm.SimpleCommand)
+
+def var_0_0.execute(arg_1_0, arg_1_1):
+	local var_1_0 = arg_1_1.getBody()
+	local var_1_1
+
+	var_1_1 = var_1_0 and var_1_0.callback
+
+	pg.ConnectionMgr.GetInstance().Send(27035, {
+		type = 0
+	}, 27036, function(arg_2_0)
+		if arg_2_0.result == 0:
+			EducateHelper.UpdateDropsData(arg_2_0.drops)
+			getProxy(EducateProxy).GetTaskProxy().UpdateTargetAwardStatus(True)
+			arg_1_0.sendNotification(GAME.EDUCATE_GET_TARGET_AWARD_DONE, {
+				awards = arg_2_0.drops
+			})
+		else
+			pg.TipsMgr.GetInstance().ShowTips(errorTip("get target award error. ", arg_2_0.result)))
+
+return var_0_0

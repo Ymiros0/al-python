@@ -1,0 +1,55 @@
+local var_0_0 = class("SettingsResRepairBtn")
+
+def var_0_0.InitTpl(arg_1_0, arg_1_1):
+	local var_1_0 = arg_1_1.tpl
+	local var_1_1 = arg_1_1.container
+	local var_1_2 = arg_1_1.iconSP
+
+	arg_1_0._tf = cloneTplTo(var_1_0, var_1_1, "REPAIR")
+	arg_1_0._go = arg_1_0._tf.gameObject
+
+	setImageSprite(arg_1_0._tf.Find("icon"), var_1_2)
+
+def var_0_0.Ctor(arg_2_0, arg_2_1):
+	arg_2_0.InitTpl(arg_2_1)
+	pg.DelegateInfo.New(arg_2_0)
+
+	arg_2_0.Progress = arg_2_0._tf.Find("progress")
+	arg_2_0.ProgressHandle = arg_2_0._tf.Find("progress/handle")
+	arg_2_0.Info1 = arg_2_0._tf.Find("status")
+	arg_2_0.Info2 = arg_2_0._tf.Find("version")
+	arg_2_0.LabelNew = arg_2_0._tf.Find("version/new")
+	arg_2_0.Dot = arg_2_0._tf.Find("new")
+	arg_2_0.Loading = arg_2_0._tf.Find("loading")
+
+	setText(arg_2_0._tf.Find("title"), i18n("repair_setting_label"))
+	arg_2_0.Init()
+
+def var_0_0.Init(arg_3_0):
+	arg_3_0.UpdateRepairStatus()
+	onButton(arg_3_0, arg_3_0._tf, function()
+		pg.RepairResMgr.GetInstance().Repair(), SFX_PANEL)
+
+def var_0_0.UpdateRepairStatus(arg_5_0):
+	setSlider(arg_5_0.Progress, 0, 1, 0)
+	setActive(arg_5_0.Dot, False)
+	setActive(arg_5_0.Loading, False)
+
+	local var_5_0 = i18n("word_files_repair")
+	local var_5_1 = ""
+
+	setText(arg_5_0.Info1, var_5_0)
+	setText(arg_5_0.Info2, var_5_1)
+
+	local var_5_2 = 1
+
+	setSlider(arg_5_0.Progress, 0, 1, var_5_2)
+	setActive(arg_5_0.ProgressHandle, var_5_2 != 0 and var_5_2 != 1)
+	setActive(arg_5_0.Dot, False)
+	setActive(arg_5_0.Loading, False)
+	setActive(arg_5_0.LabelNew, False)
+
+def var_0_0.Dispose(arg_6_0):
+	pg.DelegateInfo.Dispose(arg_6_0)
+
+return var_0_0

@@ -1,0 +1,391 @@
+local var_0_0 = class("GameHallContainerUI")
+local var_0_1 = 4
+local var_0_2 = Vector3(0.7, 0.7, 0.7)
+local var_0_3 = "mingshi"
+local var_0_4 = 0.1
+local var_0_5 = 100
+local var_0_6 = 4
+local var_0_7
+local var_0_8
+local var_0_9 = 3256
+local var_0_10 = 1920
+local var_0_11 = {
+	{
+		"item3",
+		"item3/spine"
+	}
+}
+local var_0_12 = {
+	{
+		bound = "item1/spine/bound",
+		pos = "item1/spine/pos",
+		spine = "item1/spine"
+	},
+	{
+		bound = "item2/spine2/bound",
+		pos = "item2/spine2/pos",
+		spine = "item2/spine2"
+	},
+	{
+		bound = "item2/spine3/bound",
+		pos = "item2/spine3/pos",
+		spine = "item2/spine3"
+	},
+	{
+		bound = "item4/spine1/bound",
+		pos = "item4/spine1/pos",
+		spine = "item4/spine1"
+	},
+	{
+		bound = "item4/spine2/bound",
+		pos = "item4/spine2/pos",
+		spine = "item4/spine2"
+	},
+	{
+		bound = "item6/spine1/bound",
+		pos = "item6/spine1/pos",
+		spine = "item6/spine1"
+	},
+	{
+		bound = "item6/spine2/bound",
+		pos = "item6/spine2/pos",
+		spine = "item6/spine2"
+	}
+}
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	local var_1_0 = pg.UIMgr.GetInstance().uiCamera.gameObject.transform.Find("Canvas").sizeDelta.x - var_0_10
+	local var_1_1 = var_0_10 - var_0_9 + var_1_0
+
+	var_0_7 = {
+		var_1_1,
+		0
+	}
+	var_0_8 = {
+		0,
+		0
+	}
+	arg_1_0.container = arg_1_1
+	arg_1_0.content = findTF(arg_1_0.container, "content")
+	arg_1_0.pos = findTF(arg_1_0.content, "pos")
+	arg_1_0.boundContainer = findTF(arg_1_0.content, "bound")
+	arg_1_0.charContentEvents = {}
+	arg_1_0.charContentCollider = {}
+	arg_1_0.items = {}
+
+	for iter_1_0 = 0, arg_1_0.pos.childCount - 1:
+		table.insert(arg_1_0.items, arg_1_0.pos.GetChild(iter_1_0))
+
+	arg_1_0.sitItems = {}
+
+	for iter_1_1 = 1, #var_0_12:
+		local var_1_2 = var_0_12[iter_1_1]
+		local var_1_3 = findTF(arg_1_0.pos, var_1_2.pos)
+		local var_1_4 = GetComponent(findTF(arg_1_0.pos, var_1_2.spine), typeof(SpineAnimUI))
+
+		print(var_1_2.bound)
+
+		local var_1_5 = GetComponent(findTF(arg_1_0.pos, var_1_2.bound), typeof(BoxCollider2D))
+		local var_1_6 = arg_1_0.pos.InverseTransformPoint(var_1_5.bounds.min)
+		local var_1_7 = arg_1_0.pos.InverseTransformPoint(var_1_5.bounds.max)
+
+		table.insert(arg_1_0.sitItems, {
+			sit = False,
+			pos = var_1_3,
+			min = var_1_6,
+			max = var_1_7,
+			anim = var_1_4
+		})
+
+	local var_1_8 = getProxy(BayProxy).getShips()
+	local var_1_9 = {}
+
+	for iter_1_2 = 1, #var_1_8:
+		if not table.contains(var_1_9, var_1_8[iter_1_2].name):
+			table.insert(var_1_9, var_1_8[iter_1_2].getPrefab())
+
+	if var_0_1 > #var_1_9:
+		var_0_1 = #var_1_9
+
+	arg_1_0.chars = {}
+
+	for iter_1_3 = 1, var_0_1:
+		local var_1_10 = iter_1_3
+		local var_1_11 = table.remove(var_1_9, math.random(1, #var_1_9))
+
+		PoolMgr.GetInstance().GetSpineChar(var_1_11, True, function(arg_2_0)
+			local var_2_0 = tf(arg_2_0).GetComponent(typeof(SpineAnimUI))
+
+			var_2_0.SetAction("stand2", 0)
+			setParent(tf(arg_2_0), arg_1_0.pos)
+			setLocalScale(arg_2_0, var_0_2)
+
+			local var_2_1 = findTF(arg_1_0.boundContainer, tostring(var_1_10))
+			local var_2_2 = GetComponent(var_2_1, typeof(BoxCollider2D))
+			local var_2_3 = arg_1_0.pos.InverseTransformPoint(var_2_2.bounds.min)
+			local var_2_4 = arg_1_0.pos.InverseTransformPoint(var_2_2.bounds.max)
+
+			tf(arg_2_0).anchoredPosition = arg_1_0.getTargetPos(var_2_3, var_2_4)
+
+			table.insert(arg_1_0.chars, {
+				tf = tf(arg_2_0),
+				anim = var_2_0,
+				vel = Vector2(0, 0),
+				bound = {
+					var_2_3.x,
+					var_2_3.y,
+					var_2_4.x,
+					var_2_4.y
+				},
+				min = var_2_3,
+				max = var_2_4,
+				pos = tf(arg_2_0).anchoredPosition,
+				curScale = tf(arg_2_0).localScale
+			})
+			table.insert(arg_1_0.items, tf(arg_2_0)))
+
+	arg_1_0.bataiTf = findTF(arg_1_0.pos, "batai")
+	arg_1_0.coinChar = None
+
+	PoolMgr.GetInstance().GetSpineChar(var_0_3, True, function(arg_3_0)
+		arg_1_0.coinChar = tf(arg_3_0)
+
+		tf(arg_3_0).GetComponent(typeof(SpineAnimUI)).SetAction("stand2", 0)
+		setParent(tf(arg_3_0), findTF(arg_1_0.bataiTf, "char"))
+		setLocalScale(arg_3_0, var_0_2))
+
+	arg_1_0.content.anchoredPosition = Vector2(0, 0)
+
+	local var_1_12 = GetOrAddComponent(arg_1_0.content, typeof(EventTriggerListener))
+
+	arg_1_0.velocityXSmoothing = Vector2(0, 0)
+	arg_1_0.offsetPosition = arg_1_0.content.anchoredPosition
+
+	var_1_12.AddBeginDragFunc(function(arg_4_0, arg_4_1)
+		arg_1_0.prevPosition = arg_4_1.position
+		arg_1_0.scenePosition = arg_1_0.content.anchoredPosition
+		arg_1_0.velocityXSmoothing = Vector2(0, 0)
+		arg_1_0.offsetPosition = arg_1_0.content.anchoredPosition)
+	var_1_12.AddDragFunc(function(arg_5_0, arg_5_1)
+		arg_1_0.offsetPosition.x = arg_5_1.position.x - arg_1_0.prevPosition.x + arg_1_0.scenePosition.x
+		arg_1_0.offsetPosition.y = arg_5_1.position.y - arg_1_0.prevPosition.y + arg_1_0.scenePosition.y
+		arg_1_0.offsetPosition.x = arg_1_0.offsetPosition.x > var_0_7[2] and var_0_7[2] or arg_1_0.offsetPosition.x
+		arg_1_0.offsetPosition.x = arg_1_0.offsetPosition.x < var_0_7[1] and var_0_7[1] or arg_1_0.offsetPosition.x
+		arg_1_0.offsetPosition.y = arg_1_0.offsetPosition.y > var_0_8[2] and var_0_8[2] or arg_1_0.offsetPosition.y
+		arg_1_0.offsetPosition.y = arg_1_0.offsetPosition.y < var_0_8[1] and var_0_8[1] or arg_1_0.offsetPosition.y)
+	var_1_12.AddDragEndFunc(function(arg_6_0, arg_6_1)
+		return)
+
+	arg_1_0.clickItems = {}
+
+	for iter_1_4 = 1, #var_0_11:
+		local var_1_13 = findTF(arg_1_0.pos, var_0_11[iter_1_4][1])
+		local var_1_14 = GetComponent(findTF(arg_1_0.pos, var_0_11[iter_1_4][2]), typeof(SpineAnimUI))
+
+		table.insert(arg_1_0.clickItems, {
+			time = 0,
+			tf = var_1_13,
+			anim = var_1_14
+		})
+		onButton(arg_1_0._event, var_1_13, function()
+			if arg_1_0.checkClickTime(var_1_14):
+				arg_1_0.setAnimAction(var_1_14, "action", 1, "normal"))
+
+def var_0_0.setCharSit(arg_8_0, arg_8_1, arg_8_2):
+	if arg_8_1.sitFlag or arg_8_2.sitFlag:
+		return
+
+	local var_8_0 = arg_8_1.tf
+	local var_8_1 = arg_8_1.anim
+	local var_8_2 = arg_8_2.pos
+	local var_8_3 = arg_8_2.anim
+
+	arg_8_0.setAnimAction(var_8_1, "sit", 0, None)
+	arg_8_0.setAnimAction(var_8_3, "sit", 0, None)
+
+	arg_8_1.curAction = "sit"
+	arg_8_2.curAction = "sit"
+	arg_8_1.target = None
+	arg_8_1.sitItem = arg_8_2
+	arg_8_1.sitFlag = True
+	arg_8_1.time = math.random(10, 20)
+	arg_8_1.tf.localScale = var_0_2
+	arg_8_1.vel = Vector2(0, 0)
+	arg_8_2.sitFlag = True
+
+	setParent(arg_8_1.tf, var_8_2)
+
+	arg_8_1.tf.anchoredPosition = Vector2(0, 0)
+
+def var_0_0.stopCharSit(arg_9_0, arg_9_1):
+	arg_9_1.sitItem.sitFlag = False
+
+	arg_9_0.setAnimAction(arg_9_1.anim, "walk", 0, None)
+	arg_9_0.setAnimAction(arg_9_1.sitItem.anim, "normal", 0, None)
+
+	arg_9_1.sitItem = None
+	arg_9_1.sitFlag = False
+
+	setParent(arg_9_1.tf, arg_9_0.pos)
+
+	arg_9_1.tf.anchoredPosition = arg_9_1.pos
+
+def var_0_0.checkClickTime(arg_10_0, arg_10_1):
+	for iter_10_0 = 1, #arg_10_0.clickItems:
+		if arg_10_0.clickItems[iter_10_0].anim == arg_10_1 and (arg_10_0.clickItems[iter_10_0].time == 0 or Time.realtimeSinceStartup > arg_10_0.clickItems[iter_10_0].time):
+			arg_10_0.clickItems[iter_10_0].time = Time.realtimeSinceStartup + 2
+
+			return True
+
+	return False
+
+def var_0_0.step(arg_11_0):
+	arg_11_0.content.anchoredPosition, arg_11_0.velocityXSmoothing = Vector2.SmoothDamp(arg_11_0.content.anchoredPosition, arg_11_0.offsetPosition, arg_11_0.velocityXSmoothing, var_0_4)
+
+	for iter_11_0 = 1, #arg_11_0.chars:
+		local var_11_0 = arg_11_0.chars[iter_11_0]
+		local var_11_1 = var_11_0.time
+		local var_11_2 = var_11_0.pos
+
+		if not var_11_1 or var_11_1 <= 0:
+			if var_11_0.sitFlag:
+				arg_11_0.stopCharSit(var_11_0)
+			elif math.random(1, 10) > 5:
+				local var_11_3 = arg_11_0.getTargetPos(var_11_0.min, var_11_0.max)
+
+				var_11_0.vel, var_11_0.target = arg_11_0.getVel(var_11_2, var_11_3), var_11_3
+
+			var_11_0.time = math.random(1, var_0_6)
+
+		if var_11_0.target and not var_11_0.sitFlag:
+			local var_11_4 = {
+				var_11_0.vel.x * var_0_5 * Time.deltaTime,
+				var_11_0.vel.y * var_0_5 * Time.deltaTime
+			}
+
+			if var_11_4[1] != 0:
+				var_11_0.pos.x = var_11_0.pos.x + var_11_4[1]
+
+			if var_11_4[2] != 0:
+				var_11_0.pos.y = var_11_0.pos.y + var_11_4[2]
+
+			local var_11_5 = var_11_0.bound
+
+			if var_11_0.pos.x < var_11_5[1]:
+				var_11_0.pos.x = var_11_5[1]
+				var_11_0.vel.x = 0
+
+			if var_11_0.pos.x > var_11_5[3]:
+				var_11_0.pos.x = var_11_5[3]
+				var_11_0.vel.x = 0
+
+			if var_11_0.pos.y < var_11_5[2]:
+				var_11_0.pos.y = var_11_5[2]
+				var_11_0.vel.y = 0
+
+			if var_11_0.pos.y > var_11_5[4]:
+				var_11_0.pos.y = var_11_5[4]
+				var_11_0.vel.y = 0
+
+			var_11_0.tf.anchoredPosition = var_11_0.pos
+
+			local var_11_6 = var_11_0.target
+
+			if math.abs(var_11_0.target.x - var_11_0.pos.x) < 10:
+				var_11_0.vel.x = 0
+
+			if math.abs(var_11_0.target.y - var_11_0.pos.y) < 10:
+				var_11_0.vel.y = 0
+
+		local var_11_7 = True
+		local var_11_8 = var_11_0.sitFlag
+
+		if var_11_0.vel.x == 0 and var_11_0.vel.y == 0:
+			var_11_0.time = var_11_0.time - Time.deltaTime
+			var_11_7 = False
+
+		if not var_11_7 and var_11_0.target:
+			var_11_0.target = None
+
+		if not var_11_0.sitFlag and not var_11_7:
+			var_11_0.ableSit = True
+
+		if var_11_7:
+			if var_11_0.curAction != "walk":
+				var_11_0.curAction = "walk"
+
+				var_11_0.anim.SetAction("walk", 0)
+		elif var_11_8:
+			if var_11_0.curAction != "sit":
+				var_11_0.curAction = "sit"
+
+				var_11_0.anim.SetAction("sit", 0)
+		elif var_11_0.curAction != "stand2":
+			var_11_0.curAction = "stand2"
+
+			var_11_0.anim.SetAction("stand2", 0)
+
+		if var_11_0.vel.x != 0:
+			local var_11_9 = var_11_0.vel.x > 0 and 1 or -1
+
+			if var_11_0.curScale.x != var_11_9:
+				var_11_0.curScale.x = var_11_9 * var_0_2.x
+				var_11_0.tf.localScale = var_11_0.curScale
+
+		if var_11_7:
+			arg_11_0.checkCharSit(var_11_0)
+
+	table.sort(arg_11_0.items, function(arg_12_0, arg_12_1)
+		if arg_12_0.anchoredPosition.y < arg_12_1.anchoredPosition.y:
+			return True)
+
+	for iter_11_1, iter_11_2 in ipairs(arg_11_0.items):
+		iter_11_2.SetAsFirstSibling()
+
+def var_0_0.checkCharSit(arg_13_0, arg_13_1):
+	if not arg_13_1.ableSit:
+		return
+
+	local var_13_0 = arg_13_1.pos
+
+	for iter_13_0 = 1, #arg_13_0.sitItems:
+		local var_13_1 = arg_13_0.sitItems[iter_13_0]
+		local var_13_2 = var_13_1.min
+		local var_13_3 = var_13_1.max
+
+		if var_13_0.x > var_13_2.x and var_13_0.x < var_13_3.x and var_13_0.y > var_13_2.y and var_13_0.y < var_13_3.y:
+			if math.random(1, 10) > 7:
+				print("角色想坐下")
+				arg_13_0.setCharSit(arg_13_1, var_13_1)
+			else
+				arg_13_1.ableSit = False
+
+				print("角色不想坐下")
+
+def var_0_0.getVel(arg_14_0, arg_14_1, arg_14_2):
+	local var_14_0 = math.atan(math.abs(arg_14_2.y - arg_14_1.y) / math.abs(arg_14_2.x - arg_14_1.x))
+	local var_14_1 = arg_14_2.x > arg_14_1.x and 1 or -1
+	local var_14_2 = arg_14_2.y > arg_14_1.y and 1 or -1
+	local var_14_3 = math.cos(var_14_0) * var_14_1
+	local var_14_4 = math.sin(var_14_0) * var_14_2
+
+	return Vector2(var_14_3, var_14_4)
+
+def var_0_0.setAnimAction(arg_15_0, arg_15_1, arg_15_2, arg_15_3, arg_15_4):
+	arg_15_1.SetActionCallBack(None)
+	arg_15_1.SetAction(arg_15_2, 0)
+	arg_15_1.SetActionCallBack(function(arg_16_0)
+		if arg_16_0 == "finish" and arg_15_3 == 1:
+			arg_15_1.SetActionCallBack(None)
+			arg_15_1.SetAction(arg_15_4, 0))
+
+def var_0_0.getTargetPos(arg_17_0, arg_17_1, arg_17_2):
+	local var_17_0 = tonumber(arg_17_2.x) - tonumber(arg_17_1.x)
+	local var_17_1 = tonumber(arg_17_2.y) - tonumber(arg_17_1.y)
+
+	return Vector2(arg_17_1.x + math.random(1, var_17_0), arg_17_1.y + math.random(1, var_17_1))
+
+def var_0_0.isPointInMatrix(arg_18_0, arg_18_1, arg_18_2, arg_18_3, arg_18_4, arg_18_5):
+	return arg_18_0.getCross(arg_18_1, arg_18_2, arg_18_5) * arg_18_0.getCross(arg_18_3, arg_18_4, arg_18_5) >= 0 and arg_18_0.getCross(arg_18_2, arg_18_3, arg_18_5) * arg_18_0.getCross(arg_18_4, arg_18_1, arg_18_5) >= 0
+
+return var_0_0

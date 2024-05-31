@@ -1,0 +1,63 @@
+local var_0_0 = class("CryptolaliaCard")
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	arg_1_0._go = arg_1_1
+	arg_1_0._tf = arg_1_1.transform
+	arg_1_0.iconImg = arg_1_0._tf.Find("icon").GetComponent(typeof(Image))
+	arg_1_0.nameTxt = arg_1_0._tf.Find("name").GetComponent(typeof(Text))
+	arg_1_0.shipNameTxt = arg_1_0._tf.Find("shipname").GetComponent(typeof(Text))
+	arg_1_0.timeTxt = arg_1_0._tf.Find("time").GetComponent(typeof(Text))
+	arg_1_0.timeCG = arg_1_0._tf.Find("time").GetComponent(typeof(CanvasGroup))
+	arg_1_0.selected = arg_1_0._tf.Find("selected")
+	arg_1_0.stateBtn = arg_1_0._tf.Find("name/state").GetComponent(typeof(Image))
+	arg_1_0.stateIcon = arg_1_0._tf.Find("name/state/icon").GetComponent(typeof(Image))
+
+def var_0_0.Update(arg_2_0, arg_2_1, arg_2_2, arg_2_3):
+	arg_2_0.cryptolalia = arg_2_1
+
+	local var_2_0 = arg_2_1.ShipIcon()
+
+	PoolMgr.GetInstance().GetSprite("SquareIcon/" .. var_2_0, var_2_0, True, function(arg_3_0)
+		if arg_2_0.exited:
+			return
+
+		arg_2_0.iconImg.sprite = arg_3_0)
+
+	local var_2_1 = arg_2_0.GetColor(arg_2_3)
+
+	arg_2_0.nameTxt.text = setColorStr(arg_2_1.GetName(), var_2_1)
+	arg_2_0.shipNameTxt.text = setColorStr(arg_2_1.GetShipName(), var_2_1)
+	arg_2_0.timeCG.alpha = arg_2_3 and 1 or 0.7
+
+	if not arg_2_1.IsForever() and arg_2_1.IsLock():
+		arg_2_0.timeTxt.text = setColorStr(arg_2_1.GetExpiredTimeStr(), var_2_1)
+	else
+		arg_2_0.timeTxt.text = ""
+
+	setActive(arg_2_0.selected, arg_2_3)
+
+	local var_2_2 = arg_2_1.IsLock()
+	local var_2_3 = var_2_2 or not arg_2_1.IsDownloadAllRes()
+
+	setActive(arg_2_0.stateBtn, var_2_3)
+
+	if var_2_3:
+		local var_2_4 = arg_2_0._GetColor(arg_2_3)
+
+		arg_2_0.stateBtn.color = var_2_4
+		arg_2_0.stateIcon.color = var_2_4
+
+		local var_2_5 = var_2_2 and "list_panel_lock" or "list_panel_download"
+
+		arg_2_0.stateIcon.sprite = GetSpriteFromAtlas("ui/CryptolaliaUI_atlas", var_2_5)
+
+def var_0_0.GetColor(arg_4_0, arg_4_1):
+	return arg_4_1 and "#C33A4A" or "#363737"
+
+def var_0_0._GetColor(arg_5_0, arg_5_1):
+	return arg_5_1 and Color.New(0.764, 0.227, 0.29) or Color.New(0.211, 0.215, 0.215)
+
+def var_0_0.Dispose(arg_6_0):
+	arg_6_0.exited = True
+
+return var_0_0

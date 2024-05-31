@@ -1,0 +1,125 @@
+local var_0_0 = class("CollectionShipCard")
+
+var_0_0.TypeCard = 1
+var_0_0.TypeTrans = 2
+
+local var_0_1 = pg.ship_data_group
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	arg_1_0.go = arg_1_1
+	arg_1_0.tr = arg_1_1.transform
+	arg_1_0.btn = GetOrAddComponent(arg_1_1, "Button")
+	arg_1_0.content = findTF(arg_1_0.tr, "content").gameObject
+
+	setActive(findTF(arg_1_0.content, "dockyard"), False)
+	setActive(findTF(arg_1_0.content, "collection"), True)
+	setActive(findTF(arg_1_0.content, "expbuff"), False)
+
+	arg_1_0.shipFrameImg = findTF(arg_1_0.content, "front/frame")
+	arg_1_0.iconShip = findTF(arg_1_0.content, "ship_icon").GetComponent(typeof(Image))
+	arg_1_0.imageBg = findTF(arg_1_0.content, "bg").GetComponent(typeof(Image))
+	arg_1_0.labelName = findTF(arg_1_0.content, "info/name_mask/name")
+	arg_1_0.mask2D = GetOrAddComponent(findTF(arg_1_0.content, "info/name_mask"), typeof(RectMask2D))
+	arg_1_0.iconType = findTF(arg_1_0.content, "info/top/type").GetComponent(typeof(Image))
+	arg_1_0.ringTF = findTF(arg_1_0.content, "front/ring")
+	arg_1_0.ringMetaTF = findTF(arg_1_0.content, "front/ring_meta")
+	arg_1_0.maskTF = findTF(arg_1_0.content, "collection/mask")
+	arg_1_0.heart = findTF(arg_1_0.content, "collection/heart")
+	arg_1_0.labelHeart = findTF(arg_1_0.heart, "heart").GetComponent(typeof(Text))
+	arg_1_0.labelHeartIcon = findTF(arg_1_0.heart, "icon").GetComponent(typeof(Image))
+	arg_1_0.labelHeartPlus = findTF(arg_1_0.heart, "heart+").GetComponent(typeof(Text))
+	arg_1_0.imageUnknown = findTF(arg_1_0.tr, "unknown").GetComponent(typeof(Image))
+
+	ClearTweenItemAlphaAndWhite(arg_1_0.go)
+
+def var_0_0.getIsInited(arg_2_0):
+	return arg_2_0.shipGroup != None
+
+def var_0_0.update(arg_3_0, arg_3_1, arg_3_2, arg_3_3, arg_3_4, arg_3_5):
+	local var_3_0 = ShipGroup.getState(arg_3_5, arg_3_2, arg_3_3)
+
+	if arg_3_0.code != arg_3_1 or arg_3_0.shipGroup != arg_3_2 or arg_3_0.showTrans != arg_3_3 or arg_3_0.propose != arg_3_4 or arg_3_0.state != var_3_0:
+		arg_3_0.code = arg_3_1
+		arg_3_0.shipGroup = arg_3_2
+		arg_3_0.showTrans = arg_3_3
+		arg_3_0.propose = arg_3_4
+		arg_3_0.state = var_3_0
+		arg_3_0.config = var_0_1[arg_3_5]
+
+		arg_3_0.flush()
+
+	TweenItemAlphaAndWhite(arg_3_0.go)
+
+def var_0_0.flush(arg_4_0):
+	local var_4_0 = arg_4_0.shipGroup
+
+	setActive(arg_4_0.heart, arg_4_0.state == ShipGroup.STATE_UNLOCK)
+
+	if arg_4_0.state == ShipGroup.STATE_UNLOCK:
+		arg_4_0.labelHeart.text = var_4_0.hearts > 999 and "999" or tostring(var_4_0.hearts)
+
+		setActive(arg_4_0.labelHeartPlus, var_4_0.hearts > 999)
+
+		arg_4_0.labelHeart.color = var_4_0.iheart and Color.New(1, 0.6, 0.6) or Color.New(1, 1, 1)
+		arg_4_0.labelHeartIcon.color = var_4_0.iheart and Color.New(1, 0.6, 0.6) or Color.New(1, 1, 1)
+		arg_4_0.labelHeartPlus.color = var_4_0.iheart and Color.New(1, 0.6, 0.6) or Color.New(1, 1, 1)
+
+		arg_4_0.loadImage(arg_4_0.shipGroup, True)
+	elif arg_4_0.state == ShipGroup.STATE_NOTGET:
+		arg_4_0.shipGroup = ShipGroup.New({
+			id = arg_4_0.config.group_type
+		})
+		arg_4_0.shipGroup.trans = True
+
+		if PLATFORM_CODE == PLATFORM_CH and HXSet.isHx():
+			arg_4_0.loadImage(arg_4_0.shipGroup, False)
+		else
+			arg_4_0.loadImage(arg_4_0.shipGroup, True)
+	elif arg_4_0.state == ShipGroup.STATE_LOCK:
+		-- block empty
+
+	setActive(arg_4_0.content, arg_4_0.state == ShipGroup.STATE_NOTGET or arg_4_0.state == ShipGroup.STATE_UNLOCK)
+	setActive(arg_4_0.imageUnknown, arg_4_0.state == ShipGroup.STATE_LOCK)
+	setActive(arg_4_0.maskTF, arg_4_0.state == ShipGroup.STATE_NOTGET)
+
+	if var_4_0:
+		local var_4_1 = var_4_0.isMetaGroup()
+
+		setActive(arg_4_0.ringTF, arg_4_0.propose and not var_4_1)
+		setActive(arg_4_0.ringMetaTF, arg_4_0.propose and var_4_1)
+	else
+		setActive(arg_4_0.ringTF, False)
+		setActive(arg_4_0.ringMetaTF, False)
+
+	if not arg_4_0.mask2D.enabled:
+		arg_4_0.mask2D.enabled = True
+
+	setActive(arg_4_0.labelName, False)
+	setActive(arg_4_0.labelName, True)
+
+def var_0_0.loadImage(arg_5_0, arg_5_1, arg_5_2):
+	local var_5_0 = arg_5_1.rarity2bgPrint(arg_5_0.showTrans)
+	local var_5_1 = arg_5_2 and arg_5_1.getPainting(arg_5_0.showTrans) or "unknown"
+
+	GetImageSpriteFromAtlasAsync("bg/star_level_card_" .. var_5_0, "", arg_5_0.imageBg)
+
+	arg_5_0.loadingPaintingName = var_5_1
+
+	GetSpriteFromAtlasAsync("shipYardIcon/" .. var_5_1, "", function(arg_6_0)
+		if not IsNil(arg_5_0.go) and arg_5_0.loadingPaintingName == var_5_1:
+			arg_5_0.iconShip.sprite = arg_6_0)
+
+	arg_5_0.iconType.sprite = GetSpriteFromAtlas("shiptype", shipType2print(arg_5_1.getShipType(arg_5_0.showTrans)))
+
+	setScrollText(arg_5_0.labelName, arg_5_1.getName(arg_5_0.showTrans))
+	setShipCardFrame(arg_5_0.shipFrameImg, var_5_0)
+
+def var_0_0.clear(arg_7_0):
+	arg_7_0.shipGroup = None
+	arg_7_0.showTrans = None
+	arg_7_0.propose = None
+	arg_7_0.code = None
+
+	ClearTweenItemAlphaAndWhite(arg_7_0.go)
+
+return var_0_0

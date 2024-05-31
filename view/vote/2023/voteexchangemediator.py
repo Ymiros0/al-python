@@ -1,0 +1,31 @@
+local var_0_0 = class("VoteExchangeMediator", import("view.base.ContextMediator"))
+
+var_0_0.GO_TASK = "VoteExchangeMediator.GO_TASK"
+var_0_0.SKIP_TASK = "VoteExchangeMediator.SKIP_TASK"
+var_0_0.SUBMIT_TASK = "VoteExchangeMediator.SUBMIT_TASK"
+
+def var_0_0.register(arg_1_0):
+	arg_1_0.bind(var_0_0.GO_TASK, function(arg_2_0)
+		arg_1_0.sendNotification(GAME.GO_SCENE, SCENE.TASK, {
+			page = TaskScene.PAGE_TYPE_ROUTINE
+		}))
+	arg_1_0.bind(var_0_0.SKIP_TASK, function(arg_3_0, arg_3_1)
+		arg_1_0.sendNotification(GAME.TASK_GO, {
+			taskVO = arg_3_1
+		}))
+	arg_1_0.bind(var_0_0.SUBMIT_TASK, function(arg_4_0, arg_4_1)
+		arg_1_0.sendNotification(GAME.SUBMIT_TASK, arg_4_1))
+
+def var_0_0.listNotificationInterests(arg_5_0):
+	return {
+		GAME.SUBMIT_TASK_DONE
+	}
+
+def var_0_0.handleNotification(arg_6_0, arg_6_1):
+	local var_6_0 = arg_6_1.getName()
+	local var_6_1 = arg_6_1.getBody()
+
+	if var_6_0 == GAME.SUBMIT_TASK_DONE:
+		arg_6_0.viewComponent.Flush()
+
+return var_0_0

@@ -1,0 +1,17 @@
+local var_0_0 = class("ShanChengPtSkinPage", import("...base.BaseActivityPage"))
+
+def var_0_0.OnInit(arg_1_0):
+	arg_1_0.bg = arg_1_0.findTF("AD")
+	arg_1_0.shop = arg_1_0.findTF("go", arg_1_0.bg)
+
+def var_0_0.OnFirstFlush(arg_2_0):
+	local var_2_0 = _.detect(getProxy(ActivityProxy).getActivitiesByType(ActivityConst.ACTIVITY_TYPE_SHOP), function(arg_3_0)
+		return arg_3_0.getConfig("config_client").pt_id == arg_2_0.activity.getConfig("config_client").pt_id)
+
+	onButton(arg_2_0, arg_2_0.shop, function()
+		arg_2_0.emit(ActivityMediator.GO_SHOPS_LAYER, {
+			warp = NewShopsScene.TYPE_ACTIVITY,
+			actId = var_2_0 and var_2_0.id
+		}))
+
+return var_0_0

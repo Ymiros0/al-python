@@ -1,0 +1,89 @@
+local var_0_0 = class("ActivityBossActivity", import("model.vo.Activity"))
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	var_0_0.super.Ctor(arg_1_0, arg_1_1)
+
+	arg_1_0.bossHP = 0
+	arg_1_0.milestones = {}
+	arg_1_0.bossConfig = ActivityBossConfig.New({
+		configId = arg_1_0.getConfig("config_id")
+	})
+
+def var_0_0.GetBossConfig(arg_2_0):
+	return arg_2_0.bossConfig
+
+def var_0_0.UpdatePublicData(arg_3_0, arg_3_1):
+	arg_3_0.bossHP = arg_3_1.boss_hp or 0
+	arg_3_0.milestones = arg_3_1.milestones or {}
+	arg_3_0.data2 = 1
+
+def var_0_0.AddStage(arg_4_0, arg_4_1):
+	if table.contains(arg_4_0.data1_list, arg_4_1):
+		return
+
+	table.insert(arg_4_0.data1_list, arg_4_1)
+
+def var_0_0.IsOilLimit(arg_5_0, arg_5_1):
+	assert(arg_5_1)
+
+	return table.contains(arg_5_0.data1_list, arg_5_1)
+
+def var_0_0.GetBindPtActID(arg_6_0):
+	return (getProxy(ActivityProxy).GetActBossLinkPTActID(arg_6_0.id))
+
+def var_0_0.GetBossHP(arg_7_0):
+	return arg_7_0.bossHP
+
+def var_0_0.GetMileStones(arg_8_0):
+	return arg_8_0.milestones
+
+def var_0_0.readyToAchieve(arg_9_0):
+	return arg_9_0.data2 != 1
+
+def var_0_0.GetTickets(arg_10_0):
+	local var_10_0 = {}
+
+	for iter_10_0, iter_10_1 in pairs(arg_10_0.data1KeyValueList):
+		for iter_10_2, iter_10_3 in pairs(iter_10_1):
+			var_10_0[iter_10_2] = (var_10_0[iter_10_2] or 0) + iter_10_3
+
+	return var_10_0
+
+def var_0_0.GetStageBonus(arg_11_0, arg_11_1):
+	local var_11_0 = 0
+
+	for iter_11_0, iter_11_1 in pairs(arg_11_0.data1KeyValueList):
+		for iter_11_2, iter_11_3 in pairs(iter_11_1):
+			if iter_11_2 == arg_11_1:
+				var_11_0 = var_11_0 + iter_11_3
+
+	return var_11_0
+
+def var_0_0.checkBattleTimeInBossAct(arg_12_0):
+	assert(arg_12_0.getConfig("type") == ActivityConst.ACTIVITY_TYPE_BOSS_BATTLE_MARK_2)
+
+	if arg_12_0.isEnd():
+		return False
+
+	local var_12_0 = arg_12_0.bossConfig.GetBattleTime()
+
+	return pg.TimeMgr.GetInstance().inTime(var_12_0)
+
+def var_0_0.GetHighestScore(arg_13_0):
+	return arg_13_0.data1
+
+def var_0_0.UpdateHighestScore(arg_14_0, arg_14_1):
+	if arg_14_1 <= arg_14_0.data1:
+		return False
+
+	arg_14_0.data1 = arg_14_1
+
+	return True
+
+def var_0_0.GetHistoryBuffs(arg_15_0):
+	return arg_15_0.data2_list
+
+def var_0_0.UpdateHistoryBuffs(arg_16_0, arg_16_1):
+	arg_16_0.data2_list = arg_16_1
+
+return var_0_0

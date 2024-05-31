@@ -1,0 +1,148 @@
+local var_0_0 = class("InstagramComment", import("..BaseVO"))
+
+def var_0_0.Ctor(arg_1_0, arg_1_1, arg_1_2, arg_1_3, arg_1_4):
+	arg_1_0.time = arg_1_1.time
+	arg_1_0.text = arg_1_1.text
+	arg_1_0.instagram = arg_1_2
+	arg_1_0.parentComment = arg_1_4
+	arg_1_0.id = arg_1_1.id
+	arg_1_0.level = arg_1_3 or 1
+	arg_1_0.isRoot = False
+
+	if not arg_1_0.parentComment:
+		arg_1_0.isRoot = True
+
+	arg_1_0.allReply = arg_1_2.GetAllReply()
+	arg_1_0.replyList = {}
+
+def var_0_0.GetLasterUpdateTime(arg_2_0):
+	local var_2_0 = {}
+
+	local function var_2_1(arg_3_0)
+		if arg_3_0 <= pg.TimeMgr.GetInstance().GetServerTime():
+			table.insert(var_2_0, arg_3_0)
+
+	var_2_1(arg_2_0.time)
+
+	local var_2_2 = arg_2_0.GetAllReplys()
+
+	for iter_2_0, iter_2_1 in pairs(var_2_2):
+		var_2_1(iter_2_1.time)
+
+	table.sort(var_2_0, function(arg_4_0, arg_4_1)
+		return arg_4_1 < arg_4_0)
+
+	return var_2_0[1] or 0
+
+def var_0_0.GetName(arg_5_0):
+	assert(False)
+
+def var_0_0.GetPainting(arg_6_0):
+	assert(False)
+
+def var_0_0.GetType(arg_7_0):
+	assert(False)
+
+def var_0_0.GetFasterRefreshTime(arg_8_0):
+	local var_8_0 = {}
+
+	if arg_8_0.ShouldWaitForShow():
+		table.insert(var_8_0, arg_8_0.time)
+
+	local var_8_1 = arg_8_0.GetAllReplys()
+
+	for iter_8_0, iter_8_1 in ipairs(var_8_1):
+		if iter_8_1.ShouldWaitForShow():
+			table.insert(var_8_0, iter_8_1.time)
+
+	if #var_8_0 > 0:
+		table.sort(var_8_0, function(arg_9_0, arg_9_1)
+			return arg_9_0 < arg_9_1)
+
+		return var_8_0[1]
+
+def var_0_0.AnyReplyTimeOut(arg_10_0):
+	local var_10_0 = arg_10_0.GetAllReplys()
+
+	return _.any(var_10_0, function(arg_11_0)
+		return arg_11_0.TimeOutAndTxtIsEmpty()) or arg_10_0.TimeOutAndTxtIsEmpty()
+
+def var_0_0.TimeOutAndTxtIsEmpty(arg_12_0):
+	return pg.TimeMgr.GetInstance().GetServerTime() >= arg_12_0.time and arg_12_0.text == ""
+
+def var_0_0.ShouldWaitForShow(arg_13_0):
+	return pg.TimeMgr.GetInstance().GetServerTime() < arg_13_0.time or arg_13_0.TimeOutAndTxtIsEmpty()
+
+def var_0_0.GetReplyTimeOffset(arg_14_0):
+	local var_14_0 = pg.TimeMgr.GetInstance().GetServerTime()
+
+	return arg_14_0.time - var_14_0
+
+def var_0_0.GetReplyList(arg_15_0):
+	return arg_15_0.replyList
+
+def var_0_0.GetAllReplys(arg_16_0):
+	local var_16_0 = {}
+	local var_16_1
+
+	local function var_16_2(arg_17_0)
+		for iter_17_0, iter_17_1 in ipairs(arg_17_0):
+			var_16_2(iter_17_1.replyList)
+			table.insert(var_16_0, iter_17_1)
+
+	var_16_2(arg_16_0.replyList)
+
+	return var_16_0
+
+def var_0_0.GetCanDisplayReply(arg_18_0):
+	local var_18_0 = {}
+	local var_18_1 = 0
+	local var_18_2 = arg_18_0.GetAllReplys()
+
+	for iter_18_0, iter_18_1 in ipairs(var_18_2):
+		if not iter_18_1.ShouldWaitForShow():
+			table.insert(var_18_0, iter_18_1)
+
+			var_18_1 = var_18_1 + 1
+
+	return var_18_0, var_18_1
+
+def var_0_0.GetParentCommentName(arg_19_0):
+	return arg_19_0.parentComment.GetName()
+
+def var_0_0.HasReply(arg_20_0):
+	local var_20_0 = arg_20_0.GetAllReplys()
+
+	return _.any(var_20_0, function(arg_21_0)
+		return not arg_21_0.ShouldWaitForShow()) and #var_20_0 > 0
+
+def var_0_0.GetContent(arg_22_0):
+	local var_22_0 = arg_22_0.GetName()
+
+	if arg_22_0.isRoot:
+		return string.format("<color=#000000FF>%s.</color>%s", var_22_0, arg_22_0.text)
+	else
+		local var_22_1 = arg_22_0.GetParentCommentName()
+
+		return string.format("<color=#000000FF>%s.</color>%s", var_22_0, arg_22_0.text)
+
+def var_0_0.GetReplyCnt(arg_23_0):
+	local var_23_0 = 0
+	local var_23_1 = arg_23_0.GetAllReplys()
+
+	for iter_23_0, iter_23_1 in ipairs(var_23_1):
+		if not iter_23_1.ShouldWaitForShow():
+			var_23_0 = var_23_0 + 1
+
+	return var_23_0
+
+def var_0_0.GetTime(arg_24_0):
+	return InstagramReplyTimeStamp(arg_24_0.time) .. " reply"
+
+def var_0_0.GetIcon(arg_25_0):
+	return arg_25_0.GetPainting()
+
+def var_0_0.GetReplyBtnTxt(arg_26_0):
+	return "reply"
+
+return var_0_0

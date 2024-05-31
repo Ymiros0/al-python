@@ -1,0 +1,43 @@
+local var_0_0 = class("WorldDetailMediator", import("..base.ContextMediator"))
+
+var_0_0.OnShipInfo = "WorldDetailMediator.OnShipInfo"
+var_0_0.OnCmdSkill = "WorldDetailMediator.OnCmdSkill"
+
+def var_0_0.register(arg_1_0):
+	arg_1_0.bind(var_0_0.OnShipInfo, function(arg_2_0, arg_2_1, arg_2_2)
+		local var_2_0 = WorldConst.FetchWorldShip(arg_2_1)
+
+		arg_1_0.contextData.fleetId = var_2_0.fleetId
+		arg_1_0.contextData.toggle = arg_2_2
+
+		local var_2_1 = nowWorld().GetFleet(var_2_0.fleetId).GetShipVOs(True)
+
+		arg_1_0.sendNotification(GAME.GO_SCENE, SCENE.SHIPINFO, {
+			shipId = var_2_0.id,
+			shipVOs = var_2_1
+		}))
+	arg_1_0.bind(var_0_0.OnCmdSkill, function(arg_3_0, arg_3_1)
+		arg_1_0.addSubLayers(Context.New({
+			mediator = CommanderSkillMediator,
+			viewComponent = CommanderSkillLayer,
+			data = {
+				isWorld = True,
+				skill = arg_3_1
+			}
+		})))
+	arg_1_0.viewComponent.setPlayerInfo(getProxy(PlayerProxy).getRawData())
+	arg_1_0.viewComponent.setFleets(nowWorld().GetFleets())
+
+def var_0_0.listNotificationInterests(arg_4_0):
+	return {
+		PlayerProxy.UPDATED
+	}
+
+def var_0_0.handleNotification(arg_5_0, arg_5_1):
+	local var_5_0 = arg_5_1.getName()
+	local var_5_1 = arg_5_1.getBody()
+
+	if var_5_0 == PlayerProxy.UPDATED:
+		arg_5_0.viewComponent.setPlayerInfo(getProxy(PlayerProxy).getRawData())
+
+return var_0_0

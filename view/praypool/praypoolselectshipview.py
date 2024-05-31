@@ -1,0 +1,534 @@
+local var_0_0 = class("PrayPoolSelectShipView", import("..base.BaseSubView"))
+
+var_0_0.WIDTH_MIN = 328
+var_0_0.WIDTH_MAX = 438
+var_0_0.FONT_SIZE_MIN = 55
+var_0_0.FONT_SIZE_MID = 44
+var_0_0.FONT_SIZE_MAX = 34
+
+def var_0_0.getUIName(arg_1_0):
+	return "PrayPoolSelectShipView"
+
+var_0_0.ShipIndex = {
+	typeIndex = ShipIndexConst.TypeAll,
+	campIndex = ShipIndexConst.CampAll,
+	rarityIndex = ShipIndexConst.RarityAll
+}
+var_0_0.ShipIndexData = {
+	customPanels = {
+		typeIndex = {
+			blueSeleted = True,
+			mode = CustomIndexLayer.Mode.AND,
+			options = ShipIndexConst.TypeIndexs,
+			names = ShipIndexConst.TypeNames
+		},
+		campIndex = {
+			blueSeleted = True,
+			mode = CustomIndexLayer.Mode.AND,
+			options = ShipIndexConst.CampIndexs,
+			names = ShipIndexConst.CampNames
+		},
+		rarityIndex = {
+			blueSeleted = True,
+			mode = CustomIndexLayer.Mode.AND,
+			options = ShipIndexConst.RarityIndexs,
+			names = ShipIndexConst.RarityNames
+		}
+	},
+	groupList = {
+		{
+			dropdown = False,
+			titleTxt = "indexsort_index",
+			titleENTxt = "indexsort_indexeng",
+			tags = {
+				"typeIndex"
+			}
+		},
+		{
+			dropdown = False,
+			titleTxt = "indexsort_camp",
+			titleENTxt = "indexsort_campeng",
+			tags = {
+				"campIndex"
+			}
+		},
+		{
+			dropdown = False,
+			titleTxt = "indexsort_rarity",
+			titleENTxt = "indexsort_rarityeng",
+			tags = {
+				"rarityIndex"
+			}
+		}
+	}
+}
+
+def var_0_0.OnInit(arg_2_0):
+	arg_2_0.initData()
+	arg_2_0.initUI()
+	arg_2_0.updateUI()
+	arg_2_0.Show()
+
+def var_0_0.OnDestroy(arg_3_0):
+	return
+
+def var_0_0.OnBackPress(arg_4_0):
+	return
+
+def var_0_0.initData(arg_5_0):
+	arg_5_0.prayProxy = getProxy(PrayProxy)
+	arg_5_0.poolType = arg_5_0.prayProxy.getSelectedPoolType()
+	arg_5_0.selectedCount = arg_5_0.prayProxy.getSelectedShipCount()
+	arg_5_0.pickUpNum = pg.activity_ship_create[arg_5_0.poolType].pickup_num
+	arg_5_0.fliteList = Clone(pg.activity_ship_create[arg_5_0.poolType].pickup_list)
+
+	arg_5_0.orderIDListByRarity(arg_5_0.fliteList)
+
+	arg_5_0.orderFullList = Clone(arg_5_0.fliteList)
+
+def var_0_0.initUI(arg_6_0):
+	arg_6_0.minRaritySpriteMap = {}
+	arg_6_0.maxRaritySpriteMap = {}
+	arg_6_0.ratioSpriteMap = {}
+
+	local var_6_0 = arg_6_0.findTF("MiniRarity")
+	local var_6_1 = arg_6_0.findTF("MaxRarity")
+	local var_6_2 = arg_6_0.findTF("Ratio")
+
+	for iter_6_0 = 2, 6:
+		local var_6_3 = getImageSprite(arg_6_0.findTF(tostring(iter_6_0), var_6_0))
+		local var_6_4 = getImageSprite(arg_6_0.findTF(tostring(iter_6_0), var_6_1))
+		local var_6_5 = getImageSprite(arg_6_0.findTF(tostring(iter_6_0), var_6_2))
+
+		arg_6_0.minRaritySpriteMap[iter_6_0] = var_6_3
+		arg_6_0.maxRaritySpriteMap[iter_6_0] = var_6_4
+		arg_6_0.ratioSpriteMap[iter_6_0] = var_6_5
+
+	arg_6_0.poolSpriteMap = {}
+
+	local var_6_6 = arg_6_0.findTF("Pool")
+
+	for iter_6_1 = 1, 3:
+		local var_6_7 = getImageSprite(arg_6_0.findTF(tostring(iter_6_1), var_6_6))
+
+		arg_6_0.poolSpriteMap[iter_6_1] = var_6_7
+
+	arg_6_0.poolNameImg = arg_6_0.findTF("PoolNameImg")
+	arg_6_0.shipCardTpl = arg_6_0.findTF("ShipCardTpl")
+
+	local var_6_8 = arg_6_0.findTF("SelectedShipMax")
+	local var_6_9 = arg_6_0.findTF("Light", var_6_8)
+	local var_6_10 = arg_6_0.findTF("Ship1", var_6_8)
+	local var_6_11 = arg_6_0.findTF("Ship2", var_6_8)
+	local var_6_12 = arg_6_0.findTF("SelectedShipMini")
+	local var_6_13 = arg_6_0.findTF("Light", var_6_12)
+	local var_6_14 = arg_6_0.findTF("Ship1", var_6_12)
+	local var_6_15 = arg_6_0.findTF("Ship2", var_6_12)
+
+	arg_6_0.selectedShipTFMap = {}
+	arg_6_0.selectedShipTFMap.Max = {
+		lightTF = var_6_9,
+		var_6_10,
+		var_6_11
+	}
+	arg_6_0.selectedShipTFMap.Min = {
+		lightTF = var_6_13,
+		var_6_14,
+		var_6_15
+	}
+
+	local var_6_16 = arg_6_0.isMinPrefs()
+
+	setActive(var_6_8, not var_6_16)
+	setActive(var_6_12, var_6_16)
+
+	arg_6_0.shipListArea = arg_6_0.findTF("ShipListArea")
+	arg_6_0.shipListContainer = arg_6_0.findTF("Viewport/Content", arg_6_0.shipListArea)
+	arg_6_0.shipListSC = GetComponent(arg_6_0.shipListArea, "LScrollRect")
+
+	setLocalPosition(arg_6_0.shipListArea, {
+		x = 0,
+		y = var_6_16 and -40 or -120
+	})
+
+	arg_6_0.bg2 = arg_6_0.findTF("BG2")
+
+	setLocalPosition(arg_6_0.bg2, {
+		x = 0,
+		y = var_6_16 and -62.5 or -174
+	})
+
+	arg_6_0.indexBtn = arg_6_0.findTF("IndexBtn")
+	arg_6_0.preBtn = arg_6_0.findTF("PreBtn")
+	arg_6_0.nextBtn = arg_6_0.findTF("NextBtn")
+	arg_6_0.nextBtnCom = GetComponent(arg_6_0.nextBtn, "Button")
+
+	arg_6_0.indexBtn.GetComponent(typeof(Image)).SetNativeSize()
+
+	for iter_6_2, iter_6_3 in ipairs(arg_6_0.selectedShipTFMap.Max):
+		arg_6_0.findTF("Tip/Tip", iter_6_3).GetComponent(typeof(Image)).SetNativeSize()
+
+	for iter_6_4, iter_6_5 in ipairs(arg_6_0.selectedShipTFMap.Min):
+		arg_6_0.findTF("Tip/Tip", iter_6_5).GetComponent(typeof(Image)).SetNativeSize()
+
+	arg_6_0.nextBtnCom.interactable = False
+
+	local var_6_17 = arg_6_0.findTF("InstructionText")
+
+	setText(var_6_17, i18n("pray_build_select_ship_instruction"))
+	onButton(arg_6_0, arg_6_0.preBtn, function()
+		arg_6_0.prayProxy.updatePageState(PrayProxy.STATE_SELECT_POOL)
+		arg_6_0.emit(PrayPoolConst.SWITCH_TO_SELECT_POOL_PAGE, PrayProxy.STATE_SELECT_POOL), SFX_PANEL)
+	onButton(arg_6_0, arg_6_0.nextBtn, function()
+		pg.MsgboxMgr.GetInstance().ShowMsgBox({
+			content = i18n("warning_pray_build_pool"),
+			def onYes:()
+				local function var_9_0()
+					arg_6_0.emit(PrayPoolConst.CLICK_BUILD_BTN, {
+						pooltype = arg_6_0.prayProxy.getSelectedPoolType(),
+						shipIDList = arg_6_0.prayProxy.getSelectedShipIDList()
+					})
+
+				if not arg_6_0.isMinPrefs():
+					var_9_0()
+				else
+					local var_9_1 = {}
+					local var_9_2 = arg_6_0.prayProxy.getSelectedShipIDList()
+
+					for iter_9_0, iter_9_1 in ipairs(var_9_2):
+						PaintingGroupConst.AddPaintingNameByShipConfigID(var_9_1, iter_9_1)
+
+					local var_9_3 = {
+						isShowBox = True,
+						paintingNameList = var_9_1,
+						finishFunc = var_9_0
+					}
+
+					PaintingGroupConst.PaintingDownload(var_9_3)
+		}), SFX_PANEL)
+	onButton(arg_6_0, arg_6_0.indexBtn, function()
+		local var_11_0 = Clone(var_0_0.ShipIndexData)
+
+		var_11_0.indexDatas = Clone(var_0_0.ShipIndex)
+
+		function var_11_0.callback(arg_12_0)
+			var_0_0.ShipIndex.typeIndex = arg_12_0.typeIndex
+			var_0_0.ShipIndex.rarityIndex = arg_12_0.rarityIndex
+
+			if arg_12_0.campIndex:
+				var_0_0.ShipIndex.campIndex = arg_12_0.campIndex
+
+			arg_6_0.fliteShipIDList()
+			arg_6_0.updateShipList(arg_6_0.fliteList)
+
+		arg_6_0.emit(PrayPoolConst.CLICK_INDEX_BTN, var_11_0))
+
+def var_0_0.updateUI(arg_13_0):
+	setImageSprite(arg_13_0.poolNameImg, arg_13_0.poolSpriteMap[arg_13_0.poolType], True)
+	arg_13_0.updateSelectedShipList()
+	arg_13_0.updateShipList(arg_13_0.fliteList)
+
+def var_0_0.updateSelectedShipList(arg_14_0):
+	if arg_14_0.isMinPrefs():
+		arg_14_0.updateMin()
+	else
+		arg_14_0.updateMax()
+
+def var_0_0.updateMax(arg_15_0):
+	local var_15_0 = arg_15_0.prayProxy.getSelectedShipIDList()
+	local var_15_1 = arg_15_0.selectedShipTFMap.Max
+
+	for iter_15_0 = 1, 2:
+		local var_15_2 = var_15_0[iter_15_0]
+		local var_15_3 = var_15_1[iter_15_0]
+		local var_15_4 = arg_15_0.findTF("Paint", var_15_3)
+		local var_15_5 = arg_15_0.findTF("Tip", var_15_3)
+		local var_15_6 = arg_15_0.findTF("Info", var_15_3)
+		local var_15_7 = arg_15_0.findTF("Btn", var_15_3)
+		local var_15_8 = arg_15_0.findTF("Name/Text", var_15_6)
+		local var_15_9 = arg_15_0.findTF("RarityBG", var_15_3)
+		local var_15_10 = arg_15_0.findTF("Ratio/NumImg", var_15_6)
+
+		if var_15_2:
+			setActive(var_15_4, True)
+			setPaintingPrefabAsync(var_15_4, Ship.getPaintingName(var_15_2), "biandui")
+			setActive(var_15_5, False)
+			setActive(var_15_6, True)
+
+			local var_15_11 = pg.ship_data_statistics[var_15_2].name
+
+			setText(var_15_8, var_15_11)
+
+			local var_15_12 = var_15_8.localPosition
+			local var_15_13 = #var_15_11
+
+			if var_15_13 <= 6:
+				var_15_6.sizeDelta = Vector2(var_0_0.WIDTH_MIN, var_15_6.sizeDelta.y)
+				GetComponent(var_15_8, "Text").fontSize = var_0_0.FONT_SIZE_MIN
+
+				setAnchoredPosition(var_15_8, {
+					y = 14
+				})
+			elif var_15_13 <= 21:
+				var_15_6.sizeDelta = Vector2(var_0_0.WIDTH_MAX, var_15_6.sizeDelta.y)
+				GetComponent(var_15_8, "Text").fontSize = var_0_0.FONT_SIZE_MID
+
+				setAnchoredPosition(var_15_8, {
+					y = 19
+				})
+			else
+				var_15_6.sizeDelta = Vector2(var_0_0.WIDTH_MAX, var_15_6.sizeDelta.y)
+				GetComponent(var_15_8, "Text").fontSize = var_0_0.FONT_SIZE_MAX
+
+				setAnchoredPosition(var_15_8, {
+					y = 25
+				})
+
+			local var_15_14 = pg.ship_data_statistics[var_15_2].rarity
+
+			setImageSprite(var_15_10, arg_15_0.ratioSpriteMap[var_15_14], True)
+			setActive(var_15_9, True)
+			setImageSprite(var_15_9, arg_15_0.maxRaritySpriteMap[var_15_14])
+		else
+			setActive(var_15_4, False)
+			setActive(var_15_5, True)
+			setActive(var_15_6, False)
+			setActive(var_15_9, False)
+
+		onButton(arg_15_0, var_15_7, function()
+			if isActive(var_15_4):
+				arg_15_0.prayProxy.removeSelectedShipIDList(var_15_2)
+
+				arg_15_0.selectedCount = arg_15_0.selectedCount - 1
+
+				arg_15_0.updateSelectedShipList()
+				arg_15_0.updateShipList(arg_15_0.fliteList), SFX_PANEL)
+
+	local var_15_15 = var_15_1.lightTF
+
+	if #var_15_0 == arg_15_0.pickUpNum:
+		arg_15_0.nextBtnCom.interactable = True
+
+		setActive(var_15_15, True)
+	elif #var_15_0 < arg_15_0.pickUpNum:
+		arg_15_0.nextBtnCom.interactable = False
+
+		setActive(var_15_15, False)
+
+def var_0_0.updateMin(arg_17_0):
+	local var_17_0 = arg_17_0.prayProxy.getSelectedShipIDList()
+	local var_17_1 = arg_17_0.selectedShipTFMap.Min
+
+	for iter_17_0 = 1, 2:
+		local var_17_2 = var_17_0[iter_17_0]
+		local var_17_3 = var_17_1[iter_17_0]
+		local var_17_4 = arg_17_0.findTF("Mask/Paint", var_17_3)
+		local var_17_5 = arg_17_0.findTF("Tip", var_17_3)
+		local var_17_6 = arg_17_0.findTF("Info", var_17_3)
+		local var_17_7 = arg_17_0.findTF("Btn", var_17_3)
+		local var_17_8 = arg_17_0.findTF("Name/Text", var_17_6)
+		local var_17_9 = arg_17_0.findTF("Mask/RarityBG", var_17_3)
+		local var_17_10 = arg_17_0.findTF("Ratio/NumImg", var_17_6)
+
+		if var_17_2:
+			setActive(var_17_4, True)
+			setImageSprite(var_17_4, LoadSprite("herohrzicon/" .. Ship.getPaintingName(var_17_2)))
+			setActive(var_17_5, False)
+			setActive(var_17_6, True)
+
+			local var_17_11 = pg.ship_data_statistics[var_17_2].name
+
+			setText(var_17_8, var_17_11)
+
+			local var_17_12 = var_17_8.localPosition
+			local var_17_13 = #var_17_11
+
+			if var_17_13 <= 6:
+				var_17_6.sizeDelta = Vector2(var_0_0.WIDTH_MIN, var_17_6.sizeDelta.y)
+				GetComponent(var_17_8, "Text").fontSize = var_0_0.FONT_SIZE_MIN
+
+				setAnchoredPosition(var_17_8, {
+					y = 0
+				})
+			elif var_17_13 <= 21:
+				var_17_6.sizeDelta = Vector2(var_0_0.WIDTH_MAX, var_17_6.sizeDelta.y)
+				GetComponent(var_17_8, "Text").fontSize = var_0_0.FONT_SIZE_MID
+
+				setAnchoredPosition(var_17_8, {
+					y = 5
+				})
+			else
+				var_17_6.sizeDelta = Vector2(var_0_0.WIDTH_MAX, var_17_6.sizeDelta.y)
+				GetComponent(var_17_8, "Text").fontSize = var_0_0.FONT_SIZE_MAX
+
+				setAnchoredPosition(var_17_8, {
+					y = 11
+				})
+
+			Canvas.ForceUpdateCanvases()
+
+			local var_17_14 = pg.ship_data_statistics[var_17_2].rarity
+
+			setImageSprite(var_17_10, arg_17_0.ratioSpriteMap[var_17_14], True)
+			setActive(var_17_9, True)
+			setImageSprite(var_17_9, arg_17_0.minRaritySpriteMap[var_17_14])
+		else
+			setActive(var_17_4, False)
+			setActive(var_17_5, True)
+			setActive(var_17_6, False)
+			setActive(var_17_9, False)
+
+		onButton(arg_17_0, var_17_7, function()
+			if isActive(var_17_4):
+				arg_17_0.prayProxy.removeSelectedShipIDList(var_17_2)
+
+				arg_17_0.selectedCount = arg_17_0.selectedCount - 1
+
+				arg_17_0.updateSelectedShipList()
+				arg_17_0.updateShipList(arg_17_0.fliteList), SFX_PANEL)
+
+	local var_17_15 = var_17_1.lightTF
+
+	if #var_17_0 == arg_17_0.pickUpNum:
+		arg_17_0.nextBtnCom.interactable = True
+
+		setActive(var_17_15, True)
+	elif #var_17_0 < arg_17_0.pickUpNum:
+		arg_17_0.nextBtnCom.interactable = False
+
+		setActive(var_17_15, False)
+
+def var_0_0.updateShipList(arg_19_0, arg_19_1):
+	local var_19_0 = arg_19_0.prayProxy.getSelectedShipIDList()
+
+	function arg_19_0.shipListSC.onUpdateItem(arg_20_0, arg_20_1)
+		local var_20_0 = arg_19_1[arg_20_0 + 1]
+		local var_20_1 = arg_19_0.findTF("BG/Icon", arg_20_1)
+
+		GetImageSpriteFromAtlasAsync("SquareIcon/" .. Ship.getPaintingName(var_20_0), "", var_20_1)
+
+		local var_20_2 = arg_19_0.findTF("BG/GroupLocked", arg_20_1)
+		local var_20_3 = pg.ship_data_template[var_20_0].group_type
+
+		if var_20_3 and var_20_3 > 0:
+			setActive(var_20_2, not getProxy(CollectionProxy).getShipGroup(var_20_3))
+		else
+			setActive(var_20_2, False)
+
+		local var_20_4 = arg_19_0.findTF("BG/icon_bg/frame", arg_20_1)
+		local var_20_5 = pg.ship_data_statistics[var_20_0].rarity
+		local var_20_6 = ShipRarity.Rarity2Print(var_20_5)
+
+		setFrame(var_20_4, var_20_6)
+		setIconColorful(arg_19_0.findTF("BG", arg_20_1), var_20_5 - 1, {})
+
+		local var_20_7 = arg_19_0.findTF("BG", arg_20_1)
+
+		setImageSprite(var_20_7, GetSpriteFromAtlas("weaponframes", "bg" .. var_20_6))
+
+		local var_20_8 = pg.ship_data_statistics[var_20_0].name
+		local var_20_9 = arg_19_0.findTF("NameBG/NameText", arg_20_1)
+
+		setText(var_20_9, shortenString(var_20_8, 6))
+
+		local var_20_10 = arg_19_0.findTF("BG/SelectedImg", arg_20_1)
+
+		if table.indexof(var_19_0, var_20_0, 1):
+			SetActive(var_20_10, True)
+		else
+			SetActive(var_20_10, False)
+
+		setBlackMask(tf(arg_20_1), var_20_5 == ShipRarity.SSR and arg_19_0.isSelectedSSR() and not isActive(var_20_10), {
+			recursive = True,
+			color = Color(0, 0, 0, 0.6)
+		})
+		onButton(arg_19_0, arg_20_1, function()
+			if arg_19_0.selectedCount < arg_19_0.pickUpNum:
+				if isActive(var_20_10):
+					arg_19_0.prayProxy.removeSelectedShipIDList(var_20_0)
+
+					arg_19_0.selectedCount = arg_19_0.selectedCount - 1
+
+					SetActive(var_20_10, False)
+					arg_19_0.updateSelectedShipList()
+					arg_19_0.updateShipList(arg_19_0.fliteList)
+				elif var_20_5 == ShipRarity.SSR and arg_19_0.isSelectedSSR():
+					pg.TipsMgr.GetInstance().ShowTips(i18n("pray_build_UR_warning"))
+				else
+					arg_19_0.prayProxy.insertSelectedShipIDList(var_20_0)
+
+					arg_19_0.selectedCount = arg_19_0.selectedCount + 1
+
+					SetActive(var_20_10, True)
+					arg_19_0.updateSelectedShipList()
+					arg_19_0.updateShipList(arg_19_0.fliteList)
+			elif arg_19_0.selectedCount == arg_19_0.pickUpNum:
+				if isActive(var_20_10):
+					arg_19_0.prayProxy.removeSelectedShipIDList(var_20_0)
+
+					arg_19_0.selectedCount = arg_19_0.selectedCount - 1
+
+					SetActive(var_20_10, False)
+					arg_19_0.updateSelectedShipList()
+					arg_19_0.updateShipList(arg_19_0.fliteList)
+				else
+					pg.TipsMgr.GetInstance().ShowTips(i18n("error_pray_select_ship_max")), SFX_PANEL)
+
+	function arg_19_0.shipListSC.onReturnItem(arg_22_0, arg_22_1)
+		return
+
+	arg_19_0.shipListSC.SetTotalCount(#arg_19_1)
+
+def var_0_0.orderIDListByRarity(arg_23_0, arg_23_1):
+	local var_23_0 = getProxy(CollectionProxy)
+
+	local function var_23_1(arg_24_0, arg_24_1)
+		local var_24_0 = pg.ship_data_statistics[arg_24_0].rarity
+		local var_24_1 = pg.ship_data_statistics[arg_24_1].rarity
+		local var_24_2 = var_23_0.getShipGroup(pg.ship_data_template[arg_24_0].group_type) and 1 or 0
+		local var_24_3 = var_23_0.getShipGroup(pg.ship_data_template[arg_24_1].group_type) and 1 or 0
+
+		if var_24_2 == var_24_3:
+			return var_24_1 < var_24_0
+		else
+			return var_24_2 < var_24_3
+
+	table.sort(arg_23_1, var_23_1)
+
+def var_0_0.fliteShipIDList(arg_25_0):
+	local var_25_0 = {}
+	local var_25_1 = arg_25_0.prayProxy.getSelectedShipIDList()
+
+	if var_25_1 and #var_25_1 > 0:
+		for iter_25_0, iter_25_1 in ipairs(var_25_1):
+			table.insert(var_25_0, 1, iter_25_1)
+
+	for iter_25_2, iter_25_3 in ipairs(arg_25_0.orderFullList):
+		if not table.indexof(var_25_1, iter_25_3, 1):
+			local var_25_2 = math.modf(iter_25_3 / 10)
+			local var_25_3 = ShipGroup.New({
+				id = var_25_2
+			})
+
+			if ShipIndexConst.filterByType(var_25_3, var_0_0.ShipIndex.typeIndex) and ShipIndexConst.filterByRarity(var_25_3, var_0_0.ShipIndex.rarityIndex) and ShipIndexConst.filterByCamp(var_25_3, var_0_0.ShipIndex.campIndex):
+				var_25_0[#var_25_0 + 1] = iter_25_3
+
+	arg_25_0.fliteList = var_25_0
+
+def var_0_0.isMinPrefs(arg_26_0):
+	return GroupHelper.GetGroupPrefsByName("PAINTING") == DMFileChecker.Prefs.Min
+
+def var_0_0.isSelectedSSR(arg_27_0):
+	local var_27_0 = False
+	local var_27_1 = arg_27_0.prayProxy.getSelectedShipIDList()
+
+	if var_27_1 and #var_27_1 > 0:
+		for iter_27_0, iter_27_1 in ipairs(var_27_1):
+			if pg.ship_data_statistics[iter_27_1].rarity == ShipRarity.SSR:
+				var_27_0 = True
+
+				break
+
+	return var_27_0
+
+return var_0_0

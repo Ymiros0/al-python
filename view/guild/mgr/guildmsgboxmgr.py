@@ -1,0 +1,315 @@
+pg = pg or {}
+pg.GuildMsgBoxMgr = singletonClass("GuildMsgBoxMgr")
+
+local var_0_0 = pg.GuildMsgBoxMgr
+
+def var_0_0.Init(arg_1_0, arg_1_1):
+	pg.UIMgr.GetInstance().LoadingOn()
+	PoolMgr.GetInstance().GetUI("GuildMsgBoxUI", True, function(arg_2_0)
+		pg.DelegateInfo.New(arg_1_0)
+
+		arg_1_0._go = arg_2_0
+
+		arg_1_0._go.SetActive(False)
+
+		arg_1_0._tf = arg_1_0._go.transform
+		arg_1_0.UIOverlay = GameObject.Find("Overlay/UIOverlay")
+
+		arg_1_0._go.transform.SetParent(arg_1_0.UIOverlay.transform, False)
+
+		arg_1_0.confirmBtn = findTF(arg_1_0._go, "frame/confirm_btn")
+		arg_1_0.cancelBtn = findTF(arg_1_0._go, "frame/cancel_btn")
+
+		setText(arg_1_0.cancelBtn.Find("Text"), i18n("text_iknow"))
+		setText(arg_1_0.confirmBtn.Find("Text"), i18n("text_forward"))
+
+		arg_1_0.contextTxt = findTF(arg_1_0._go, "frame/content/Text").GetComponent(typeof(Text))
+
+		pg.UIMgr.GetInstance().LoadingOff()
+
+		arg_1_0.isInited = True
+
+		if arg_1_1:
+			arg_1_1())
+
+def var_0_0.Notification(arg_3_0, arg_3_1):
+	assert(arg_3_1.condition)
+
+	if arg_3_1.condition():
+		if not arg_3_0.isInited:
+			arg_3_0.Init(function()
+				arg_3_0.RefreshView(arg_3_1))
+		else
+			arg_3_0.RefreshView(arg_3_1)
+	elif arg_3_1.OnNo:
+		arg_3_1.OnNo()
+
+def var_0_0.RefreshView(arg_5_0, arg_5_1):
+	arg_5_0.settings = arg_5_1
+
+	setActive(arg_5_0._tf, True)
+
+	arg_5_0.contextTxt.text = arg_5_1.content or ""
+
+	onButton(arg_5_0, arg_5_0.confirmBtn, function()
+		if arg_5_1.OnYes:
+			arg_5_1.OnYes()
+
+		arg_5_0.Close(), SFX_PANEL)
+	onButton(arg_5_0, arg_5_0.cancelBtn, function()
+		if arg_5_1.OnNo:
+			arg_5_1.OnNo()
+
+		arg_5_0.Hide(), SFX_PANEL)
+	onButton(arg_5_0, arg_5_0._tf, function()
+		if arg_5_1.OnNo:
+			arg_5_1.OnNo()
+
+		arg_5_0.Hide(), SFX_PANEL)
+	onButton(arg_5_0, findTF(arg_5_0._go, "frame/close"), function()
+		if arg_5_1.OnNo:
+			arg_5_1.OnNo()
+
+		arg_5_0.Hide(), SFX_PANEL)
+	pg.UIMgr.GetInstance().BlurPanel(arg_5_0._tf, False, {
+		weight = LayerWeightConst.TOP_LAYER,
+		blurCamList = arg_5_1.blurCamList
+	})
+	arg_5_0._tf.SetAsLastSibling()
+
+def var_0_0.Close(arg_10_0):
+	if arg_10_0._tf and isActive(arg_10_0._tf):
+		arg_10_0.settings = None
+
+		pg.UIMgr.GetInstance().UnblurPanel(arg_10_0._tf, arg_10_0.UIOverlay)
+		setActive(arg_10_0._tf, False)
+
+def var_0_0.Hide(arg_11_0):
+	if arg_11_0._tf and isActive(arg_11_0._tf) and arg_11_0.settings.OnHide:
+		arg_11_0.settings.OnHide()
+
+	arg_11_0.Close()
+
+def var_0_0.Destroy(arg_12_0):
+	if arg_12_0.isInited:
+		pg.DelegateInfo.Dispose(arg_12_0)
+
+		arg_12_0.isInited = None
+
+		Destroy(arg_12_0._go)
+
+def var_0_0.NotificationForGuildEvent(arg_13_0, arg_13_1):
+	local var_13_0 = getProxy(GuildProxy).getRawData()
+
+	if var_13_0:
+		local var_13_1 = var_13_0.GetActiveWeeklyTask()
+
+		if var_13_1 and arg_13_1.id == var_13_1.GetPresonTaskId():
+			arg_13_0.Notification({
+				def condition:()
+					return var_13_1.SamePrivateTaskType(GuildTask.PRIVATE_TASK_TYPE_EVENT) and var_13_1.PrivateBeFinished(),
+				content = i18n("guild_mission_complate", var_13_1.GetPrivateTaskName()),
+				def OnYes:()
+					pg.m02.sendNotification(GuildMainMediator.SWITCH_TO_OFFICE)
+			})
+
+def var_0_0.OnBeginBattle(arg_16_0):
+	if not getProxy(GuildProxy):
+		return
+
+	local var_16_0 = getProxy(GuildProxy).getRawData()
+
+	if var_16_0:
+		local var_16_1 = var_16_0.GetActiveWeeklyTask()
+
+		arg_16_0.taskFinished = var_16_1 and var_16_1.PrivateBeFinished() and var_16_1.SamePrivateTaskType(GuildTask.PRIVATE_TASK_TYPE_BATTLE)
+
+		print("taskFinished . ", arg_16_0.taskFinished)
+
+def var_0_0.OnFinishBattle(arg_17_0, arg_17_1):
+	if not getProxy(GuildProxy):
+		return
+
+	local var_17_0 = getProxy(GuildProxy).getRawData()
+
+	if var_17_0 and arg_17_1 and arg_17_1.system >= SYSTEM_SCENARIO and arg_17_1.system <= SYSTEM_WORLD:
+		local var_17_1 = var_17_0.GetActiveWeeklyTask()
+		local var_17_2 = var_17_1 and var_17_1.PrivateBeFinished() and var_17_1.SamePrivateTaskType(GuildTask.PRIVATE_TASK_TYPE_BATTLE)
+
+		if not arg_17_0.taskFinished and var_17_2:
+			arg_17_0.shouldShowBattleTip = True
+
+	arg_17_0.taskFinished = None
+
+def var_0_0.NotificationForBattle(arg_18_0, arg_18_1):
+	if arg_18_0.shouldShowBattleTip:
+		local var_18_0 = getProxy(GuildProxy).getRawData()
+		local var_18_1 = var_18_0 and var_18_0.GetActiveWeeklyTask()
+
+		if var_18_1:
+			local var_18_2 = False
+
+			seriesAsync({
+				function(arg_19_0)
+					arg_18_0.SubmitTask(function(arg_20_0, arg_20_1, arg_20_2)
+						var_18_2 = arg_20_0
+
+						arg_19_0()),
+				function(arg_21_0)
+					local var_21_0 = var_18_2 and "\n" .. i18n("guild_task_autoaccept_2", var_18_1.GetPrivateTaskName()) or ""
+					local var_21_1 = getProxy(ChapterProxy).getActiveChapter()
+					local var_21_2 = {
+						pg.UIMgr.CameraLevel
+					}
+
+					if var_21_1 and var_21_1.CheckChapterWin():
+						var_21_2 = None
+
+					arg_18_0.Notification({
+						def condition:()
+							return True,
+						content = i18n("guild_mission_complate", var_18_1.GetPrivateTaskName()) .. var_21_0,
+						def OnYes:()
+							pg.m02.sendNotification(GAME.GO_SCENE, SCENE.GUILD, {
+								page = "office"
+							}),
+						blurCamList = var_21_2,
+						OnHide = arg_18_1
+					})
+			})
+		elif arg_18_1:
+			arg_18_1()
+	elif arg_18_1:
+		arg_18_1()
+
+	arg_18_0.shouldShowBattleTip = None
+
+def var_0_0.NotificationForDailyBattle(arg_24_0):
+	if arg_24_0.shouldShowBattleTip:
+		local var_24_0 = getProxy(GuildProxy).getRawData()
+		local var_24_1 = var_24_0 and var_24_0.GetActiveWeeklyTask()
+
+		if var_24_1:
+			local var_24_2 = False
+
+			seriesAsync({
+				function(arg_25_0)
+					arg_24_0.SubmitTask(function(arg_26_0, arg_26_1, arg_26_2)
+						var_24_2 = arg_26_0
+
+						arg_25_0()),
+				function()
+					local var_27_0 = var_24_2 and "\n" .. i18n("guild_task_autoaccept_2", var_24_1.GetPrivateTaskName()) or ""
+
+					arg_24_0.Notification({
+						def condition:()
+							return True,
+						content = i18n("guild_mission_complate", var_24_1.GetPrivateTaskName()) .. var_27_0,
+						def OnYes:()
+							pg.m02.sendNotification(GAME.GO_SCENE, SCENE.GUILD, {
+								page = "office"
+							})
+					})
+			})
+
+	arg_24_0.shouldShowBattleTip = None
+
+def var_0_0.NotificationForWorld(arg_30_0, arg_30_1):
+	if arg_30_0.shouldShowBattleTip:
+		local var_30_0 = getProxy(GuildProxy).getRawData()
+		local var_30_1 = var_30_0 and var_30_0.GetActiveWeeklyTask()
+
+		if var_30_1:
+			local var_30_2 = False
+
+			seriesAsync({
+				function(arg_31_0)
+					arg_30_0.SubmitTask(function(arg_32_0, arg_32_1, arg_32_2)
+						var_30_2 = arg_32_0
+
+						arg_31_0()),
+				function()
+					local var_33_0 = var_30_2 and "\n" .. i18n("guild_task_autoaccept_2", var_30_1.GetPrivateTaskName()) or ""
+
+					arg_30_0.Notification({
+						def condition:()
+							return True,
+						content = i18n("guild_mission_complate", var_30_1.GetPrivateTaskName()) .. var_33_0,
+						def OnYes:()
+							pg.m02.sendNotification(GAME.GO_SCENE, SCENE.GUILD, {
+								page = "office"
+							}),
+						OnHide = arg_30_1
+					})
+			})
+		elif arg_30_1:
+			arg_30_1()
+	elif arg_30_1:
+		arg_30_1()
+
+	arg_30_0.shouldShowBattleTip = None
+
+def var_0_0.GetShouldShowBattleTip(arg_36_0):
+	return arg_36_0.shouldShowBattleTip
+
+def var_0_0.CancelShouldShowBattleTip(arg_37_0):
+	arg_37_0.shouldShowBattleTip = None
+
+def var_0_0.SubmitTask(arg_38_0, arg_38_1):
+	arg_38_1 = arg_38_1 or function()
+		return
+
+	local var_38_0 = getProxy(GuildProxy).getRawData()
+
+	if not var_38_0:
+		arg_38_1()
+
+		return
+
+	local var_38_1 = var_38_0 and var_38_0.GetActiveWeeklyTask()
+
+	if not var_38_1:
+		arg_38_1()
+
+		return
+
+	if var_38_1 and var_38_1.isFinished():
+		arg_38_1()
+
+		return
+
+	local var_38_2 = var_38_1.GetPresonTaskId()
+	local var_38_3 = getProxy(TaskProxy)
+	local var_38_4 = var_38_3.getTaskById(var_38_2) or var_38_3.getFinishTaskById(var_38_2)
+
+	if var_38_4 and not var_38_4.isFinish():
+		arg_38_1()
+
+		return
+
+	if not var_38_0.hasWeeklyTaskFlag():
+		arg_38_1(False, False, var_38_2)
+
+		return
+
+	local var_38_5 = False
+	local var_38_6 = {}
+
+	if var_38_4 and var_38_4.isFinish() and not var_38_4.isReceive():
+		table.insert(var_38_6, function(arg_40_0)
+			pg.m02.sendNotification(GAME.SUBMIT_TASK, var_38_2, function(arg_41_0)
+				var_38_5 = arg_41_0
+
+				arg_40_0()))
+
+	table.insert(var_38_6, function(arg_42_0)
+		local var_42_0 = var_38_3.getTaskById(var_38_2) or var_38_3.getFinishTaskById(var_38_2)
+
+		if var_38_1 and not var_38_1.isFinished() and (not var_42_0 or var_42_0 and var_42_0.isFinish() and var_42_0.isReceive()):
+			pg.m02.sendNotification(GAME.TRIGGER_TASK, var_38_2, arg_42_0)
+		else
+			arg_42_0())
+	seriesAsync(var_38_6, function()
+		local var_43_0 = var_38_3.getTaskById(var_38_2)
+
+		arg_38_1(var_43_0 != None, var_38_5, var_38_2))

@@ -1,0 +1,288 @@
+local var_0_0 = class("EquipType")
+
+var_0_0.CannonQuZhu = 1
+var_0_0.CannonQingXun = 2
+var_0_0.CannonZhongXun = 3
+var_0_0.CannonZhanlie = 4
+var_0_0.Torpedo = 5
+var_0_0.AntiAircraft = 6
+var_0_0.FighterAircraft = 7
+var_0_0.TorpedoAircraft = 8
+var_0_0.BomberAircraft = 9
+var_0_0.Equipment = 10
+var_0_0.CannonZhongXun2 = 11
+var_0_0.SeaPlane = 12
+var_0_0.SubmarineTorpedo = 13
+var_0_0.Sonar = 14
+var_0_0.AntiSubAircraft = 15
+var_0_0.Helicopter = 17
+var_0_0.Goods = 18
+var_0_0.Missile = 20
+var_0_0.RangedAntiAircraft = 21
+var_0_0.AmmoType_1 = 1
+var_0_0.AmmoType_2 = 2
+var_0_0.AmmoType_3 = 3
+var_0_0.AmmoType_4 = 4
+var_0_0.AmmoType_5 = 5
+var_0_0.AmmoType_6 = 6
+var_0_0.AmmoType_7 = 7
+var_0_0.AmmoType_8 = 8
+var_0_0.AmmoType_8 = 9
+var_0_0.AmmoType_8 = 10
+var_0_0.CannonEquipTypes = {
+	var_0_0.CannonQuZhu,
+	var_0_0.CannonQingXun,
+	var_0_0.CannonZhongXun,
+	var_0_0.CannonZhanlie,
+	var_0_0.CannonZhongXun2
+}
+var_0_0.AirProtoEquipTypes = {
+	var_0_0.FighterAircraft,
+	var_0_0.TorpedoAircraft,
+	var_0_0.BomberAircraft
+}
+var_0_0.AirEquipTypes = {
+	var_0_0.FighterAircraft,
+	var_0_0.TorpedoAircraft,
+	var_0_0.BomberAircraft,
+	var_0_0.SeaPlane
+}
+var_0_0.AirExtendEquipTypes = {
+	var_0_0.FighterAircraft,
+	var_0_0.TorpedoAircraft,
+	var_0_0.BomberAircraft,
+	var_0_0.SeaPlane,
+	var_0_0.AntiSubAircraft,
+	var_0_0.Helicopter
+}
+var_0_0.AirDomainEquip = {
+	var_0_0.FighterAircraft,
+	var_0_0.TorpedoAircraft,
+	var_0_0.BomberAircraft,
+	var_0_0.SeaPlane
+}
+var_0_0.TorpedoEquipTypes = {
+	var_0_0.Torpedo,
+	var_0_0.SubmarineTorpedo
+}
+var_0_0.DeviceEquipTypes = {
+	var_0_0.Equipment,
+	var_0_0.AntiSubAircraft,
+	var_0_0.Sonar,
+	var_0_0.Helicopter,
+	var_0_0.Goods
+}
+var_0_0.AircraftSkinType = {
+	var_0_0.FighterAircraft,
+	var_0_0.TorpedoAircraft,
+	var_0_0.BomberAircraft,
+	var_0_0.SeaPlane,
+	var_0_0.AntiSubAircraft
+}
+
+local var_0_1 = {
+	i18n("word_primary_weapons"),
+	i18n("word_sub_cannons"),
+	i18n("word_torpedo"),
+	i18n("word_air_defense_artillery"),
+	i18n("word_shipboard_aircraft"),
+	i18n("word_device"),
+	i18n("word_submarine_torpedo"),
+	i18n("wrod_sub_weapons"),
+	i18n("word_main_cannons"),
+	i18n("word_cannon"),
+	i18n("word_equipment_aircraft"),
+	i18n("word_fighter"),
+	i18n("word_bomber"),
+	i18n("word_attacker"),
+	i18n("word_seaplane"),
+	i18n("word_equipment"),
+	i18n("word_missile")
+}
+local var_0_2 = {
+	"cannon",
+	"cannon",
+	"cannon",
+	"cannon",
+	"torpedo",
+	"antiair",
+	"fighter",
+	"attacker",
+	"bomber",
+	"equipment",
+	"cannon",
+	"seaplane",
+	"torpedo",
+	"equipment",
+	"equipment",
+	None,
+	"equipment",
+	"equipment",
+	None,
+	"missile",
+	"antiair"
+}
+
+def var_0_0.Type2Name(arg_1_0):
+	return pg.equip_data_by_type[arg_1_0].type_name
+
+def var_0_0.Type2Name2(arg_2_0):
+	return pg.equip_data_by_type[arg_2_0].type_name2
+
+def var_0_0.type2Tag(arg_3_0):
+	if not var_0_0.tagPrints:
+		var_0_0.tagPrints = {
+			"4",
+			"4",
+			"4",
+			"4",
+			"5",
+			"6",
+			"7",
+			"8",
+			"9",
+			"10",
+			"4",
+			"12",
+			"5",
+			"10",
+			"13",
+			None,
+			"14",
+			"15",
+			None,
+			"16",
+			"6"
+		}
+
+	return var_0_0.tagPrints[arg_3_0]
+
+def var_0_0.getCompareGroup(arg_4_0):
+	local var_4_0 = Equipment.getConfigData(arg_4_0).type
+
+	return pg.equip_data_by_type[var_4_0].compare_group
+
+def var_0_0.type2Title(arg_5_0, arg_5_1):
+	if arg_5_1 <= 4:
+		return var_0_1[arg_5_0]
+	elif arg_5_1 == var_0_0.Torpedo:
+		return var_0_1[3]
+	elif arg_5_1 == var_0_0.AntiAircraft or arg_5_1 == var_0_0.RangedAntiAircraft:
+		return var_0_1[4]
+	elif arg_5_1 >= 7 and arg_5_1 <= 9 or arg_5_1 == var_0_0.SeaPlane:
+		return var_0_0.Type2Name(arg_5_1)
+	elif arg_5_1 == var_0_0.Equipment or arg_5_1 == var_0_0.AntiSubAircraft:
+		return var_0_1[6]
+	elif arg_5_1 == var_0_0.SubmarineTorpedo:
+		return var_0_1[7]
+	elif arg_5_1 == var_0_0.Missile:
+		return var_0_1[17]
+
+local var_0_3 = {
+	1,
+	2,
+	3,
+	4,
+	11
+}
+local var_0_4 = {
+	7,
+	8,
+	9,
+	12
+}
+local var_0_5 = {
+	1,
+	2
+}
+local var_0_6 = {
+	10,
+	14,
+	15,
+	17,
+	18
+}
+
+local function var_0_7(arg_6_0)
+	if _.all(arg_6_0, function(arg_7_0)
+		return table.contains(var_0_6, arg_7_0)):
+		return "equipment"
+	elif _.all(arg_6_0, function(arg_8_0)
+		return table.contains(var_0_3, arg_8_0)):
+		return "main_cannons"
+	elif #arg_6_0 == 1:
+		return var_0_2[arg_6_0[1]]
+	elif #arg_6_0 > 1:
+		if _.all(arg_6_0, function(arg_9_0)
+			return table.contains(var_0_4, arg_9_0)):
+			return "equipment_aircraft"
+		else
+			return "primary_weapons"
+
+	return ""
+
+local function var_0_8(arg_10_0, arg_10_1)
+	if _.all(arg_10_1, function(arg_11_0)
+		return table.contains(var_0_3, arg_11_0)) and _.is_equal(arg_10_0, arg_10_1):
+		return "main_cannons"
+	elif _.all(arg_10_0, function(arg_12_0)
+		return table.contains(var_0_6, arg_12_0)):
+		return "equipment"
+	elif _.all(arg_10_0, function(arg_13_0)
+		return table.contains(var_0_5, arg_13_0)):
+		return "sub_cannons"
+	elif #arg_10_0 == 1:
+		return var_0_2[arg_10_0[1]]
+	elif #arg_10_0 > 1:
+		if _.all(arg_10_0, function(arg_14_0)
+			return table.contains(var_0_4, arg_14_0)):
+			return "equipment_aircraft"
+		else
+			return "sub_weapons"
+
+	return ""
+
+local function var_0_9(arg_15_0)
+	if _.all(arg_15_0, function(arg_16_0)
+		return table.contains(var_0_6, arg_16_0)):
+		return "equipment"
+	elif #arg_15_0 == 2 and table.contains(arg_15_0, EquipType.AntiAircraft) and table.contains(arg_15_0, EquipType.RangedAntiAircraft):
+		return "antiair"
+	elif _.all(arg_15_0, function(arg_17_0)
+		return table.contains(var_0_5, arg_17_0)):
+		return "sub_cannons"
+	elif #arg_15_0 == 1:
+		return var_0_2[arg_15_0[1]]
+	elif #arg_15_0 > 1:
+		if _.all(arg_15_0, function(arg_18_0)
+			return table.contains(var_0_4, arg_18_0)):
+			return "equipment_aircraft"
+		else
+			return "sub_weapons"
+
+	return ""
+
+def var_0_0.Types2Title(arg_19_0, arg_19_1):
+	local var_19_0 = pg.ship_data_template[arg_19_1]
+	local var_19_1 = var_19_0["equip_" .. arg_19_0]
+
+	if arg_19_0 == 1:
+		return var_0_7(var_19_1)
+	elif arg_19_0 == 2:
+		local var_19_2 = var_19_0.equip_1
+
+		return var_0_8(var_19_1, var_19_2)
+	elif arg_19_0 == 3:
+		return var_0_9(var_19_1)
+	elif arg_19_0 == 4 or arg_19_0 == 5:
+		return var_0_2[var_19_1[1]]
+
+def var_0_0.LabelToName(arg_20_0):
+	if arg_20_0 == "antiair":
+		arg_20_0 = "air_defense_artillery"
+	elif arg_20_0 == "equipment":
+		arg_20_0 = "device"
+
+	return i18n("word_" .. arg_20_0)
+
+return var_0_0

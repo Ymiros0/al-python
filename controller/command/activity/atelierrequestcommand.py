@@ -1,0 +1,19 @@
+local var_0_0 = class("AtelierRequestCommand", pm.SimpleCommand)
+
+def var_0_0.execute(arg_1_0, arg_1_1):
+	local var_1_0 = arg_1_1.body
+
+	pg.ConnectionMgr.GetInstance().Send(26051, {
+		act_id = var_1_0
+	}, 26052, function(arg_2_0)
+		if arg_2_0.result == 0:
+			local var_2_0 = getProxy(ActivityProxy).getActivityById(var_1_0)
+
+			var_2_0.InitItems(arg_2_0.items)
+			var_2_0.InitFormulaUseCounts(arg_2_0.recipes)
+			var_2_0.UpdateBuffSlots(arg_2_0.slots)
+			getProxy(ActivityProxy).updateActivity(var_2_0)
+		else
+			pg.TipsMgr.GetInstance().ShowTips(errorTip("", arg_2_0.result)))
+
+return var_0_0

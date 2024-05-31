@@ -1,0 +1,1433 @@
+local var_0_0 = class("DialogueStoryPlayer", import(".StoryPlayer"))
+local var_0_1 = 159
+local var_0_2 = 411
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	var_0_0.super.Ctor(arg_1_0, arg_1_1)
+
+	arg_1_0.actorPanel = arg_1_0.findTF("actor")
+	arg_1_0.actorLeft = arg_1_0.findTF("actor_left", arg_1_0.actorPanel)
+	arg_1_0.initActorLeftPos = arg_1_0.actorLeft.localPosition
+	arg_1_0.actorMiddle = arg_1_0.findTF("actor_middle", arg_1_0.actorPanel)
+	arg_1_0.initActorMiddlePos = arg_1_0.actorMiddle.localPosition
+	arg_1_0.actorRgiht = arg_1_0.findTF("actor_right", arg_1_0.actorPanel)
+	arg_1_0.initActorRgihtPos = arg_1_0.actorRgiht.localPosition
+	arg_1_0.sortingOrder = arg_1_0._go.GetComponent(typeof(Canvas)).sortingOrder
+	arg_1_0.subActorMiddle = UIItemList.New(arg_1_0.findTF("actor_middle/sub", arg_1_0.actorPanel), arg_1_0.findTF("actor_middle/sub/tpl", arg_1_0.actorPanel))
+	arg_1_0.subActorRgiht = UIItemList.New(arg_1_0.findTF("actor_right/sub", arg_1_0.actorPanel), arg_1_0.findTF("actor_right/sub/tpl", arg_1_0.actorPanel))
+	arg_1_0.subActorLeft = UIItemList.New(arg_1_0.findTF("actor_left/sub", arg_1_0.actorPanel), arg_1_0.findTF("actor_left/sub/tpl", arg_1_0.actorPanel))
+	arg_1_0.glitchArtMaterial = arg_1_0.findTF("resource/material1").GetComponent(typeof(Image)).material
+	arg_1_0.maskMaterial = arg_1_0.findTF("resource/material2").GetComponent(typeof(Image)).material
+	arg_1_0.maskMaterialForWithLayer = arg_1_0.findTF("resource/material5").GetComponent(typeof(Image)).material
+	arg_1_0.glitchArtMaterialForPainting = arg_1_0.findTF("resource/material3").GetComponent(typeof(Image)).material
+	arg_1_0.glitchArtMaterialForPaintingBg = arg_1_0.findTF("resource/material4").GetComponent(typeof(Image)).material
+	arg_1_0.headObjectMat = arg_1_0.findTF("resource/material6").GetComponent(typeof(Image)).material
+	arg_1_0.headMaskMat = arg_1_0.findTF("resource/material7").GetComponent(typeof(Image)).material
+	arg_1_0.typewriterSpeed = 0
+	arg_1_0.contentBgAlpha = 1
+	arg_1_0.live2dChars = {}
+	arg_1_0.spinePainings = {}
+
+def var_0_0.OnStart(arg_2_0, arg_2_1):
+	arg_2_0.nextTr = arg_2_0.findTF("next", arg_2_0.dialogueWin)
+	arg_2_0.conentTr = arg_2_0.findTF("content", arg_2_0.dialogueWin)
+	arg_2_0.conentTxt = arg_2_0.findTF("content", arg_2_0.dialogueWin).GetComponent(typeof(Text))
+	arg_2_0.typewriter = arg_2_0.findTF("content", arg_2_0.dialogueWin).GetComponent(typeof(Typewriter))
+	arg_2_0.nameTr = arg_2_0.findTF("content/name", arg_2_0.dialogueWin)
+	arg_2_0.nameTxt = arg_2_0.findTF("Text", arg_2_0.nameTr).GetComponent(typeof(Text))
+	arg_2_0.portraitTr = arg_2_0.findTF("portrait", arg_2_0.dialogueWin)
+	arg_2_0.portraitImg = arg_2_0.portraitTr.GetComponent(typeof(Image))
+	arg_2_0.tags = {
+		arg_2_0.nameTr.Find("tags/1"),
+		arg_2_0.nameTr.Find("tags/2")
+	}
+	arg_2_0.contentBgs = {
+		arg_2_0.findTF("bg", arg_2_0.nameTr),
+		arg_2_0.findTF("bg", arg_2_0.dialogueWin)
+	}
+	arg_2_0.defualtFontSize = arg_2_0.conentTxt.fontSize
+
+def var_0_0.OnReset(arg_3_0, arg_3_1, arg_3_2, arg_3_3):
+	arg_3_0.ResetActorTF(arg_3_1, arg_3_2)
+	setActive(arg_3_0.nameTr, False)
+	setActive(arg_3_0.nameTr, False)
+	setActive(arg_3_0.dialoguePanel, True)
+	setActive(arg_3_0.actorPanel, True)
+	setActive(arg_3_0.nextTr, False)
+
+	arg_3_0.conentTxt.text = ""
+
+	local var_3_0 = arg_3_1.ExistPortrait()
+	local var_3_1 = arg_3_2 and arg_3_2.IsDialogueMode() and arg_3_2.ExistPortrait() and var_3_0
+
+	setActive(arg_3_0.portraitTr, var_3_1)
+
+	if not var_3_1 and arg_3_2 and arg_3_2.IsDialogueMode() and arg_3_2.ShouldGlitchArtForPortrait():
+		arg_3_0.ClearGlitchArtForPortrait()
+
+	arg_3_0.conentTr.offsetMin = Vector2(var_3_0 and var_0_2 or var_0_1, arg_3_0.conentTr.offsetMin.y)
+
+	arg_3_0.SetContentBgAlpha(arg_3_1.GetContentBGAlpha())
+	arg_3_3()
+
+local function var_0_3(arg_4_0, arg_4_1)
+	if not arg_4_1:
+		return False
+
+	local var_4_0
+
+	if arg_4_0.IsLive2dPainting():
+		var_4_0 = arg_4_1.Find("live2d")
+	elif arg_4_0.IsSpinePainting():
+		var_4_0 = arg_4_1.Find("spine")
+	else
+		var_4_0 = arg_4_1.Find("fitter")
+
+	if var_4_0.childCount <= 0:
+		return False
+
+	return var_4_0.GetChild(0).name == arg_4_0.GetPainting()
+
+def var_0_0.GetRecycleActorList(arg_5_0, arg_5_1, arg_5_2):
+	local var_5_0 = arg_5_1.GetSide()
+	local var_5_1 = arg_5_0.GetSideTF(var_5_0)
+	local var_5_2 = {}
+
+	if arg_5_1.HideOtherPainting():
+		var_5_2 = {
+			arg_5_0.actorLeft,
+			arg_5_0.actorMiddle,
+			arg_5_0.actorRgiht
+		}
+	else
+		if arg_5_2 and arg_5_2.IsDialogueMode() and arg_5_1.IsDialogueMode() and arg_5_1.IsSameSide(arg_5_2) and arg_5_1.IsSamePainting(arg_5_2) or var_0_3(arg_5_1, var_5_1):
+			-- block empty
+		else
+			table.insert(var_5_2, var_5_1)
+
+		if var_5_0 == DialogueStep.SIDE_MIDDLE:
+			table.insert(var_5_2, arg_5_0.actorLeft)
+			table.insert(var_5_2, arg_5_0.actorRgiht)
+
+	return var_5_2
+
+def var_0_0.ResetActorTF(arg_6_0, arg_6_1, arg_6_2):
+	local var_6_0 = arg_6_1.GetSide()
+	local var_6_1 = arg_6_0.GetSideTF(var_6_0)
+
+	if var_6_1:
+		arg_6_0.CancelTween(var_6_1.gameObject)
+
+		var_6_1.localScale = Vector3(1, 1, 1)
+		var_6_1.eulerAngles = Vector3(0, 0, 0)
+
+		if var_6_1 == arg_6_0.actorRgiht:
+			var_6_1.localPosition = arg_6_0.initActorRgihtPos
+		elif var_6_1 == arg_6_0.actorMiddle:
+			var_6_1.localPosition = arg_6_0.initActorMiddlePos
+		elif var_6_1 == arg_6_0.actorLeft:
+			var_6_1.localPosition = arg_6_0.initActorLeftPos
+
+	local var_6_2 = arg_6_0.GetRecycleActorList(arg_6_1, arg_6_2)
+
+	if var_6_1 and _.all(var_6_2, function(arg_7_0)
+		return arg_7_0 != var_6_1):
+		arg_6_0.paintingStay = True
+
+		arg_6_0.ResetMeshPainting(var_6_1)
+
+		if arg_6_1.IsSpinePainting():
+			arg_6_0.HideSpineEffect(var_6_1, arg_6_1)
+
+	arg_6_0.RecyclePaintingList(var_6_2)
+	arg_6_0.RecyclesSubPantings(arg_6_0.subActorMiddle)
+	arg_6_0.RecyclesSubPantings(arg_6_0.subActorRgiht)
+	arg_6_0.RecyclesSubPantings(arg_6_0.subActorLeft)
+
+	for iter_6_0, iter_6_1 in ipairs({
+		arg_6_0.actorLeft,
+		arg_6_0.actorMiddle,
+		arg_6_0.actorRgiht
+	}):
+		iter_6_1.GetComponent(typeof(CanvasGroup)).alpha = 1
+
+def var_0_0.HideSpineEffect(arg_8_0, arg_8_1):
+	arg_8_0.spineEffectOrderCaches = {}
+
+	local function var_8_0(arg_9_0)
+		local var_9_0 = arg_9_0.GetComponentsInChildren(typeof("UnityEngine.ParticleSystemRenderer"))
+
+		for iter_9_0 = 1, var_9_0.Length:
+			local var_9_1 = var_9_0[iter_9_0 - 1]
+			local var_9_2 = ReflectionHelp.RefGetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_9_1)
+
+			ReflectionHelp.RefSetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_9_1, -1)
+
+			arg_8_0.spineEffectOrderCaches[var_9_1] = var_9_2
+
+	local var_8_1 = arg_8_1.Find("spine")
+	local var_8_2 = arg_8_1.Find("spinebg")
+
+	var_8_0(var_8_1)
+	var_8_0(var_8_2)
+
+def var_0_0.RevertSpineEffect(arg_10_0, arg_10_1, arg_10_2):
+	if not arg_10_2:
+		return
+
+	local function var_10_0(arg_11_0)
+		local var_11_0 = arg_11_0.GetComponentsInChildren(typeof("UnityEngine.ParticleSystemRenderer"))
+
+		for iter_11_0 = 1, var_11_0.Length:
+			local var_11_1 = var_11_0[iter_11_0 - 1]
+			local var_11_2 = arg_10_2[var_11_1] or 950
+
+			ReflectionHelp.RefSetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_11_1, var_11_2)
+
+	local var_10_1 = arg_10_1.Find("spine")
+	local var_10_2 = arg_10_1.Find("spinebg")
+
+	var_10_0(var_10_1)
+	var_10_0(var_10_2)
+
+def var_0_0.OnInit(arg_12_0, arg_12_1, arg_12_2, arg_12_3):
+	local var_12_0 = {
+		function(arg_13_0)
+			arg_12_0.UpdateContent(arg_12_1, arg_13_0),
+		function(arg_14_0)
+			arg_12_0.UpdatePortrait(arg_12_1, arg_14_0),
+		function(arg_15_0)
+			arg_12_0.UpdateSubPaintings(arg_12_1, arg_15_0),
+		function(arg_16_0)
+			arg_12_0.UpdatePainting(arg_12_1, arg_12_2, arg_16_0),
+		function(arg_17_0)
+			arg_12_0.GrayingInPainting(arg_12_1, arg_12_2, arg_17_0),
+		function(arg_18_0)
+			arg_12_0.StartMovePrevPaintingToSide(arg_12_1, arg_12_2, arg_18_0),
+		function(arg_19_0)
+			arg_12_0.GrayingOutPrevPainting(arg_12_2, arg_12_1, arg_19_0)
+	}
+
+	parallelAsync(var_12_0, arg_12_3)
+
+def var_0_0.UpdatePortrait(arg_20_0, arg_20_1, arg_20_2):
+	if not arg_20_1.ExistPortrait():
+		arg_20_2()
+
+		return
+
+	local var_20_0 = arg_20_1.GetPortrait()
+
+	LoadSpriteAsync("StoryIcon/" .. var_20_0, function(arg_21_0)
+		setImageSprite(arg_20_0.portraitTr, arg_21_0, True)
+		setActive(arg_20_0.portraitTr, True)
+		arg_20_0.AdjustPortraitPosition()
+
+		if arg_20_1.ShouldGlitchArtForPortrait():
+			arg_20_0.SetGlitchArtForPortrait()
+		else
+			arg_20_0.ClearGlitchArtForPortrait()
+
+		arg_20_2())
+
+def var_0_0.AdjustPortraitPosition(arg_22_0):
+	local var_22_0 = arg_22_0.portraitTr.sizeDelta.x < var_0_2 and var_0_2 or 539
+
+	setAnchoredPosition3D(arg_22_0.portraitTr, {
+		x = var_22_0
+	})
+
+def var_0_0.SetGlitchArtForPortrait(arg_23_0):
+	if arg_23_0.portraitImg.material != arg_23_0.glitchArtMaterialForPainting:
+		arg_23_0.portraitImg.material = arg_23_0.glitchArtMaterialForPainting
+
+def var_0_0.ClearGlitchArtForPortrait(arg_24_0):
+	if arg_24_0.portraitImg.material != arg_24_0.portraitImg.defaultGraphicMaterial:
+		arg_24_0.portraitImg.material = arg_24_0.portraitImg.defaultGraphicMaterial
+
+def var_0_0.UpdateSubPaintings(arg_25_0, arg_25_1, arg_25_2):
+	local var_25_0, var_25_1, var_25_2, var_25_3 = arg_25_0.GetSideTF(arg_25_1.GetSide())
+
+	if not arg_25_1.ExistPainting():
+		arg_25_2()
+
+		return
+
+	arg_25_0.InitSubPainting(var_25_3, arg_25_1.GetSubPaintings(), arg_25_1)
+
+	if arg_25_1.NeedDispppearSubPainting():
+		arg_25_0.DisappearSubPainting(var_25_3, arg_25_1, arg_25_2)
+	else
+		arg_25_2()
+
+def var_0_0.OnStartUIAnimations(arg_26_0, arg_26_1, arg_26_2):
+	if not arg_26_1.ShouldShakeDailogue():
+		arg_26_2()
+
+		return
+
+	local var_26_0 = arg_26_1.GetShakeDailogueData()
+	local var_26_1 = var_26_0.x
+	local var_26_2 = var_26_0.number
+	local var_26_3 = var_26_0.delay
+	local var_26_4 = var_26_0.speed
+	local var_26_5 = arg_26_0.dialogueWin.localPosition.x
+
+	arg_26_0.TweenMovex(arg_26_0.dialogueWin, var_26_1, var_26_5, var_26_4, var_26_3, var_26_2, arg_26_2)
+
+def var_0_0.OnEnter(arg_27_0, arg_27_1, arg_27_2, arg_27_3):
+	parallelAsync({
+		function(arg_28_0)
+			arg_27_0.UpdateCanMarkNode(arg_27_1, arg_28_0),
+		function(arg_29_0)
+			arg_27_0.UpdateIcon(arg_27_1, arg_29_0)
+	}, arg_27_3)
+
+local function var_0_4(arg_30_0, arg_30_1)
+	ResourceMgr.Inst.getAssetAsync("Story/" .. arg_30_0, arg_30_0, UnityEngine.Events.UnityAction_UnityEngine_Object(function(arg_31_0)
+		arg_30_1(arg_31_0)), True, True)
+
+local function var_0_5(arg_32_0, arg_32_1)
+	if not arg_32_1:
+		return False
+
+	return arg_32_0.GetCanMarkNodeData().name == arg_32_1.name
+
+def var_0_0.UpdateCanMarkNode(arg_33_0, arg_33_1, arg_33_2):
+	local var_33_0 = arg_33_1.ExistCanMarkNode()
+
+	if not var_33_0 or not var_0_5(arg_33_1, arg_33_0.canMarkNode):
+		arg_33_0.ClearCanMarkNode(arg_33_0.canMarkNode)
+
+	if not var_33_0:
+		arg_33_2()
+
+		return
+
+	local var_33_1 = arg_33_1.GetCanMarkNodeData()
+
+	local function var_33_2(arg_34_0)
+		eachChild(arg_34_0, function(arg_35_0)
+			local var_35_0 = table.contains(var_33_1.marks, arg_35_0.gameObject.name)
+
+			if var_35_0 != isActive(arg_35_0):
+				setActive(arg_35_0, var_35_0))
+
+	if not arg_33_0.canMarkNode:
+		var_0_4(var_33_1.name, function(arg_36_0)
+			if arg_33_0.stop or not arg_36_0:
+				arg_33_2()
+
+				return
+
+			local var_36_0 = Object.Instantiate(arg_36_0, arg_33_0.backPanel)
+
+			arg_33_0.canMarkNode = {
+				name = var_33_1.name,
+				go = var_36_0
+			}
+
+			var_33_2(var_36_0)
+			arg_33_2())
+	else
+		var_33_2(arg_33_0.canMarkNode.go)
+		arg_33_2()
+
+def var_0_0.ClearCanMarkNode(arg_37_0):
+	if arg_37_0.canMarkNode:
+		Object.Destroy(arg_37_0.canMarkNode.go)
+
+		arg_37_0.canMarkNode = None
+
+def var_0_0.GrayingOutPrevPainting(arg_38_0, arg_38_1, arg_38_2, arg_38_3):
+	if not arg_38_1 or not arg_38_1.IsDialogueMode():
+		arg_38_3()
+
+		return
+
+	local var_38_0 = arg_38_0.GetSideTF(arg_38_2.GetPrevSide(arg_38_1))
+
+	if var_38_0 and arg_38_2 and arg_38_2.IsDialogueMode() and arg_38_2.ShouldGrayingOutPainting(arg_38_1):
+		local var_38_1 = arg_38_1.GetPaintingData()
+		local var_38_2 = arg_38_1.GetPaintingAlpha() or 1
+
+		arg_38_0.fadeTransform(var_38_0, var_38_2, var_38_1.alpha, var_38_1.time, False, arg_38_3)
+	else
+		arg_38_3()
+
+def var_0_0.GrayingInPainting(arg_39_0, arg_39_1, arg_39_2, arg_39_3):
+	if not arg_39_1.ExistPainting():
+		arg_39_3()
+
+		return
+
+	if arg_39_2 and arg_39_2.IsDialogueMode() and arg_39_1.ShouldGrayingPainting(arg_39_2):
+		local var_39_0 = arg_39_0.GetSideTF(arg_39_1.GetSide())
+		local var_39_1 = arg_39_1.GetPaintingData()
+
+		if not IsNil(var_39_0) and not arg_39_1.GetPaintingAlpha():
+			arg_39_0.fadeTransform(var_39_0, var_39_1.alpha, 1, var_39_1.time, False)
+
+	arg_39_3()
+
+def var_0_0.UpdateTypeWriter(arg_40_0, arg_40_1, arg_40_2):
+	local var_40_0 = arg_40_1.GetTypewriter()
+
+	if not var_40_0:
+		arg_40_2()
+
+		return
+
+	function arg_40_0.typewriter.endFunc()
+		arg_40_0.typewriterSpeed = 0
+		arg_40_0.typewriter.endFunc = None
+
+		removeOnButton(arg_40_0._tf)
+		arg_40_2()
+
+	arg_40_0.typewriterSpeed = math.max((var_40_0.speed or 0.1) * arg_40_0.timeScale, 0.001)
+
+	local var_40_1 = var_40_0.speedUp or arg_40_0.typewriterSpeed
+
+	arg_40_0.typewriter.setSpeed(arg_40_0.typewriterSpeed)
+	arg_40_0.typewriter.Play()
+	onButton(arg_40_0, arg_40_0._tf, function()
+		if arg_40_0.puase or arg_40_0.stop:
+			return
+
+		arg_40_0.typewriterSpeed = math.min(arg_40_0.typewriterSpeed, var_40_1)
+
+		arg_40_0.typewriter.setSpeed(arg_40_0.typewriterSpeed), SFX_PANEL)
+
+def var_0_0.UpdatePainting(arg_43_0, arg_43_1, arg_43_2, arg_43_3):
+	if not arg_43_1.ExistPainting():
+		arg_43_3()
+
+		return
+
+	local var_43_0 = not arg_43_0.paintingStay
+
+	if arg_43_0.paintingStay and arg_43_0.spineEffectOrderCaches and arg_43_1.IsSpinePainting():
+		local var_43_1 = arg_43_0.GetSideTF(arg_43_1.GetSide())
+
+		arg_43_0.RevertSpineEffect(var_43_1, arg_43_0.spineEffectOrderCaches)
+
+	arg_43_0.spineEffectOrderCaches = None
+	arg_43_0.paintingStay = None
+
+	local var_43_2, var_43_3, var_43_4, var_43_5 = arg_43_0.GetSideTF(arg_43_1.GetSide())
+	local var_43_6 = arg_43_2 and arg_43_2.IsDialogueMode() and (arg_43_1.ShouldGrayingOutPainting(arg_43_2) or arg_43_1.ShouldGrayingPainting(arg_43_2)) or not arg_43_1.ShouldFadeInPainting() or not var_43_0
+	local var_43_7 = arg_43_2 and arg_43_2.IsDialogueMode() and arg_43_1.ShouldGrayingPainting(arg_43_2)
+
+	seriesAsync({
+		function(arg_44_0)
+			if not var_43_6:
+				var_43_2.GetComponent(typeof(CanvasGroup)).alpha = 0
+
+			arg_43_0.LoadPainting(arg_43_1, var_43_0, arg_44_0)
+
+			if var_43_7:
+				local var_44_0 = arg_43_1.GetPaintingData()
+
+				arg_43_0.SetFadeColor(var_43_2, var_44_0.alpha),
+		function(arg_45_0)
+			if var_43_6:
+				arg_45_0()
+
+				return
+
+			arg_43_0.FadeInPainting(var_43_2, arg_43_1, arg_45_0),
+		function(arg_46_0)
+			arg_43_0.AnimationPainting(arg_43_1, arg_46_0)
+	}, arg_43_3)
+
+def var_0_0.FadeInPainting(arg_47_0, arg_47_1, arg_47_2, arg_47_3):
+	local var_47_0 = arg_47_1.GetComponent(typeof(CanvasGroup))
+	local var_47_1 = arg_47_2.GetFadeInPaintingTime()
+	local var_47_2 = arg_47_2.ShouldAddHeadMaskWhenFade()
+
+	if var_47_2:
+		arg_47_0.AddHeadMask(arg_47_1)
+
+	arg_47_0.TweenValueForcanvasGroup(var_47_0, 0, 1, var_47_1, 0, function()
+		if var_47_2:
+			arg_47_0.ClearHeadMask(arg_47_1)
+
+		arg_47_3())
+
+def var_0_0.AddHeadMask(arg_49_0, arg_49_1):
+	local var_49_0 = arg_49_1.Find("fitter")
+
+	if not var_49_0 or var_49_0.childCount <= 0:
+		return
+
+	local var_49_1 = var_49_0.GetChild(0)
+	local var_49_2 = var_49_1.Find("face")
+	local var_49_3 = cloneTplTo(var_49_2, var_49_2.parent, "head_mask")
+	local var_49_4 = var_49_1.Find("layers")
+	local var_49_5 = arg_49_1.GetComponentsInChildren(typeof(Image))
+
+	if var_49_4:
+		for iter_49_0 = 0, var_49_5.Length - 1:
+			local var_49_6 = var_49_5[iter_49_0]
+
+			if var_49_6.gameObject.name == "head_mask":
+				var_49_6.material = arg_49_0.headMaskMat
+			elif var_49_6.gameObject.name == "face":
+				-- block empty
+			elif var_49_6.gameObject.transform.parent == var_49_4:
+				var_49_6.material = arg_49_0.headObjectMat
+	else
+		for iter_49_1 = 0, var_49_5.Length - 1:
+			local var_49_7 = var_49_5[iter_49_1]
+
+			if var_49_7.gameObject.name == "head_mask":
+				var_49_7.material = arg_49_0.headMaskMat
+			elif var_49_7.gameObject.name == "face":
+				-- block empty
+			else
+				var_49_7.material = arg_49_0.headObjectMat
+
+def var_0_0.ClearHeadMask(arg_50_0, arg_50_1):
+	local var_50_0 = arg_50_1.Find("fitter")
+
+	if not var_50_0 or var_50_0.childCount <= 0:
+		return
+
+	local var_50_1 = var_50_0.GetChild(0).Find("head_mask")
+
+	Object.Destroy(var_50_1.gameObject)
+
+	local var_50_2 = arg_50_1.GetComponentsInChildren(typeof(Image))
+
+	for iter_50_0 = 0, var_50_2.Length - 1:
+		local var_50_3 = var_50_2[iter_50_0]
+
+		var_50_3.material = var_50_3.defaultGraphicMaterial
+
+def var_0_0.AnimationPainting(arg_51_0, arg_51_1, arg_51_2):
+	if arg_51_1.IsLive2dPainting() or arg_51_1.IsSpinePainting():
+		arg_51_2()
+
+		return
+
+	local var_51_0, var_51_1, var_51_2, var_51_3 = arg_51_0.GetSideTF(arg_51_1.GetSide())
+
+	arg_51_0.StartPaintingActions(var_51_0, arg_51_1, arg_51_2)
+
+def var_0_0.LoadPainting(arg_52_0, arg_52_1, arg_52_2, arg_52_3):
+	local var_52_0, var_52_1, var_52_2, var_52_3 = arg_52_0.GetSideTF(arg_52_1.GetSide())
+	local var_52_4, var_52_5 = arg_52_1.GetPaintingAndName()
+
+	if arg_52_1.IsLive2dPainting() and checkABExist("live2d/" .. var_52_5):
+		arg_52_0.UpdateLive2dPainting(arg_52_1, var_52_0, arg_52_2, arg_52_3)
+	elif arg_52_1.IsSpinePainting() and checkABExist("spinepainting/" .. var_52_5):
+		arg_52_0.UpdateSpinePainting(arg_52_1, var_52_0, arg_52_2, arg_52_3)
+	else
+		arg_52_0.UpdateMeshPainting(arg_52_1, var_52_0, var_52_3, arg_52_2, arg_52_3)
+
+def var_0_0.UpdateLive2dPainting(arg_53_0, arg_53_1, arg_53_2, arg_53_3, arg_53_4):
+	local function var_53_0(arg_54_0)
+		local var_54_0 = arg_53_1.GetVirtualShip()
+		local var_54_1 = arg_53_1.GetLive2dPos()
+		local var_54_2 = Live2D.GenerateData({
+			ship = var_54_0,
+			scale = Vector3(70, 70, 70),
+			position = var_54_1 or Vector3(0, 0, 0),
+			parent = arg_53_2.Find("live2d")
+		})
+		local var_54_3 = GetOrAddComponent(arg_53_0._go, typeof(CanvasGroup))
+
+		var_54_3.blocksRaycasts = False
+
+		local var_54_4 = Live2D.New(var_54_2, function(arg_55_0)
+			arg_55_0._go.name = arg_53_1.GetPainting()
+
+			local var_55_0 = arg_55_0._go.GetComponent("Live2D.Cubism.Rendering.CubismRenderController")
+			local var_55_1 = arg_53_0.sortingOrder + 1
+			local var_55_2 = typeof("Live2D.Cubism.Rendering.CubismRenderController")
+
+			ReflectionHelp.RefSetProperty(var_55_2, "SortingOrder", var_55_0, var_55_1)
+
+			local var_55_3 = ReflectionHelp.RefGetField(typeof("Live2D.Cubism.Rendering.CubismSortingMode"), "BackToFrontOrder")
+
+			ReflectionHelp.RefSetProperty(var_55_2, "SortingMode", var_55_0, var_55_3)
+
+			local var_55_4 = GetOrAddComponent(arg_53_0.front, typeof(Canvas))
+
+			GetOrAddComponent(arg_53_0.front, typeof(GraphicRaycaster))
+
+			var_55_4.overrideSorting = True
+			var_55_4.sortingOrder = var_55_1 + arg_55_0._tf.Find("Drawables").childCount
+			var_54_3.blocksRaycasts = True
+
+			if arg_54_0:
+				arg_54_0(arg_55_0))
+
+		arg_53_0.live2dChars[arg_53_2] = var_54_4
+
+	local function var_53_1(arg_56_0)
+		if arg_56_0:
+			local var_56_0 = arg_53_1.GetLive2dAction()
+
+			if var_56_0 and var_56_0 != "":
+				arg_56_0.TriggerAction(var_56_0)
+
+			local var_56_1 = arg_53_1.GetL2dIdleIndex()
+
+			if var_56_1 and var_56_1 != "" and var_56_1 > 0:
+				arg_56_0.changeIdleIndex(var_56_1)
+
+		arg_53_4()
+
+	if not arg_53_3 and arg_53_0.live2dChars[arg_53_2]:
+		local var_53_2 = arg_53_0.live2dChars[arg_53_2]
+
+		var_53_1(var_53_2)
+	else
+		var_53_0(var_53_1)
+
+local function var_0_6(arg_57_0, arg_57_1, arg_57_2)
+	local var_57_0 = arg_57_0.GetComponentsInChildren(typeof(Canvas))
+	local var_57_1
+
+	for iter_57_0 = 1, var_57_0.Length:
+		var_57_1 = var_57_0[iter_57_0 - 1].sortingOrder
+
+	local var_57_2 = math.huge
+	local var_57_3 = arg_57_1.GetComponentsInChildren(typeof(Canvas))
+
+	if var_57_3.Length == 0:
+		var_57_2 = 0
+	else
+		for iter_57_1 = 1, var_57_3.Length:
+			local var_57_4 = var_57_3[iter_57_1 - 1].sortingOrder - var_57_1
+
+			if var_57_4 < var_57_2:
+				var_57_2 = var_57_4
+
+	local var_57_5 = arg_57_1.GetComponentsInChildren(typeof("UnityEngine.ParticleSystemRenderer"))
+	local var_57_6 = {}
+
+	for iter_57_2 = 1, var_57_5.Length:
+		local var_57_7 = var_57_5[iter_57_2 - 1]
+		local var_57_8 = ReflectionHelp.RefGetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_57_7)
+
+		var_57_6[iter_57_2] = var_57_8
+
+		local var_57_9 = var_57_8 - var_57_1
+
+		if var_57_9 < var_57_2:
+			var_57_2 = var_57_9
+
+	local var_57_10 = arg_57_2 - var_57_2 + 1
+
+	for iter_57_3 = 1, var_57_0.Length:
+		var_57_0[iter_57_3 - 1].sortingOrder = var_57_10 + (iter_57_3 - 1)
+
+	local var_57_11 = var_57_10 + 1
+
+	for iter_57_4 = 1, var_57_3.Length:
+		local var_57_12 = var_57_3[iter_57_4 - 1]
+		local var_57_13 = var_57_10 + (var_57_12.sortingOrder - var_57_1)
+
+		var_57_12.sortingOrder = var_57_13
+
+		if var_57_10 < var_57_13:
+			var_57_11 = var_57_13
+
+	for iter_57_5 = 1, var_57_5.Length:
+		local var_57_14 = var_57_5[iter_57_5 - 1]
+		local var_57_15 = var_57_10 + (var_57_6[iter_57_5] - var_57_1)
+
+		ReflectionHelp.RefSetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_57_14, var_57_15)
+
+		if var_57_10 < var_57_15:
+			var_57_11 = var_57_15
+
+	return var_57_11
+
+local function var_0_7(arg_58_0, arg_58_1, arg_58_2)
+	local var_58_0 = arg_58_0.GetComponentsInChildren(typeof(Canvas))
+	local var_58_1 = arg_58_0.GetComponentsInChildren(typeof("UnityEngine.ParticleSystemRenderer"))
+	local var_58_2 = math.huge
+
+	if var_58_0.Length == 0:
+		var_58_2 = 0
+	else
+		for iter_58_0 = 1, var_58_0.Length:
+			local var_58_3 = var_58_0[iter_58_0 - 1].sortingOrder
+
+			if var_58_3 < var_58_2:
+				var_58_2 = var_58_3
+
+	local var_58_4 = {}
+
+	for iter_58_1 = 1, var_58_1.Length:
+		local var_58_5 = var_58_1[iter_58_1 - 1]
+		local var_58_6 = ReflectionHelp.RefGetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_58_5)
+
+		var_58_4[iter_58_1] = var_58_6
+
+		if var_58_6 < var_58_2:
+			var_58_2 = var_58_6
+
+	local var_58_7 = arg_58_2 + 1
+	local var_58_8 = var_58_7 - var_58_2
+
+	for iter_58_2 = 1, var_58_0.Length:
+		local var_58_9 = var_58_0[iter_58_2 - 1]
+		local var_58_10 = var_58_8 + var_58_9.sortingOrder
+
+		var_58_9.sortingOrder = var_58_10
+
+		if var_58_7 < var_58_10:
+			var_58_7 = var_58_10
+
+	for iter_58_3 = 1, var_58_1.Length:
+		local var_58_11 = var_58_1[iter_58_3 - 1]
+		local var_58_12 = var_58_8 + var_58_4[iter_58_3]
+
+		ReflectionHelp.RefSetProperty(typeof("UnityEngine.ParticleSystemRenderer"), "sortingOrder", var_58_11, var_58_12)
+
+		if var_58_12 < var_58_7:
+			var_58_7 = var_58_12
+
+	return var_58_7
+
+def var_0_0.UpdateSpinePainting(arg_59_0, arg_59_1, arg_59_2, arg_59_3, arg_59_4):
+	local function var_59_0(arg_60_0)
+		local var_60_0 = arg_59_2.Find("spine")
+		local var_60_1 = arg_59_2.Find("spinebg")
+		local var_60_2 = arg_59_1.GetVirtualShip()
+		local var_60_3 = SpinePainting.GenerateData({
+			ship = var_60_2,
+			position = Vector3(0, 0, 0),
+			parent = var_60_0,
+			effectParent = var_60_1
+		})
+
+		setActive(var_60_1, not arg_59_1.IsHideSpineBg())
+
+		local var_60_4 = SpinePainting.New(var_60_3, function(arg_61_0)
+			arg_61_0._go.name = arg_59_1.GetPainting()
+
+			local var_61_0 = arg_59_0.sortingOrder
+			local var_61_1 = arg_59_1.GetSpineOrderIndex()
+
+			if not var_61_1:
+				var_61_0 = var_0_6(var_60_0, var_60_1, arg_59_0.sortingOrder)
+			else
+				var_61_0 = var_0_7(var_60_0, var_61_1, arg_59_0.sortingOrder)
+
+			local var_61_2 = GetOrAddComponent(arg_59_0.front, typeof(Canvas))
+
+			GetOrAddComponent(arg_59_0.front, typeof(GraphicRaycaster))
+
+			var_61_2.overrideSorting = True
+			var_61_2.sortingOrder = var_61_0 + 1
+
+			arg_59_0.UpdateSpineExpression(arg_61_0, arg_59_1)
+
+			if arg_60_0:
+				arg_60_0())
+
+		arg_59_0.spinePainings[arg_59_2] = var_60_4
+
+	if not arg_59_3 and arg_59_0.spinePainings[arg_59_2]:
+		arg_59_0.UpdateSpineExpression(arg_59_0.spinePainings[arg_59_2], arg_59_1)
+		arg_59_4()
+	else
+		var_59_0(arg_59_4)
+
+def var_0_0.UpdateSpineExpression(arg_62_0, arg_62_1, arg_62_2):
+	local var_62_0 = arg_62_2.GetSpineExPression()
+
+	if var_62_0:
+		arg_62_1.SetAction(var_62_0, 1)
+	else
+		arg_62_1.SetEmptyAction(1)
+
+def var_0_0.UpdateMeshPainting(arg_63_0, arg_63_1, arg_63_2, arg_63_3, arg_63_4, arg_63_5):
+	local var_63_0 = arg_63_1.GetPainting()
+	local var_63_1 = False
+
+	local function var_63_2()
+		if arg_63_1.IsShowNPainting() and checkABExist("painting/" .. var_63_0 .. "_n"):
+			var_63_0 = var_63_0 .. "_n"
+
+		if arg_63_1.IsShowWJZPainting() and checkABExist("painting/" .. var_63_0 .. "_wjz"):
+			var_63_0 = var_63_0 .. "_wjz"
+
+		setPaintingPrefab(arg_63_2, var_63_0, "duihua")
+
+	if var_63_0:
+		local var_63_3 = findTF(arg_63_2, "fitter").childCount
+
+		if arg_63_4 or var_63_3 <= 0:
+			var_63_2()
+
+		local var_63_4 = arg_63_1.GetPaintingDir()
+		local var_63_5 = math.abs(var_63_4)
+
+		arg_63_2.localScale = Vector3(var_63_4, var_63_5, 1)
+
+		local var_63_6 = findTF(arg_63_2, "fitter").GetChild(0)
+
+		var_63_6.name = var_63_0
+
+		arg_63_0.UpdateActorPostion(arg_63_2, arg_63_1)
+		arg_63_0.UpdateExpression(var_63_6, arg_63_1)
+		arg_63_0.AddGlitchArtEffectForPating(arg_63_2, var_63_6, arg_63_1)
+		arg_63_2.SetAsLastSibling()
+
+		if arg_63_1.ShouldGrayPainting():
+			setGray(var_63_6, True, True)
+
+		local var_63_7 = findTF(var_63_6, "shadow")
+
+		if var_63_7:
+			setActive(var_63_7, arg_63_1.ShouldFaceBlack())
+
+		local var_63_8 = arg_63_1.GetPaintingAlpha()
+
+		if var_63_8:
+			arg_63_0.setPaintingAlpha(arg_63_2, var_63_8)
+
+	arg_63_5()
+
+local function var_0_8(arg_65_0)
+	local var_65_0 = arg_65_0.name
+
+	if arg_65_0.showNPainting and checkABExist("painting/" .. var_65_0 .. "_n"):
+		var_65_0 = var_65_0 .. "_n"
+
+	return var_65_0
+
+def var_0_0.InitSubPainting(arg_66_0, arg_66_1, arg_66_2, arg_66_3):
+	local function var_66_0(arg_67_0, arg_67_1)
+		local var_67_0 = var_0_8(arg_67_0)
+
+		setPaintingPrefab(arg_67_1, var_67_0, "duihua")
+
+		local var_67_1 = findTF(arg_67_1, "fitter").GetChild(0)
+		local var_67_2 = findTF(var_67_1, "face")
+		local var_67_3 = arg_67_0.expression
+
+		if not arg_67_0.expression and arg_67_0.name and ShipExpressionHelper.DefaultFaceless(arg_67_0.name):
+			var_67_3 = ShipExpressionHelper.GetDefaultFace(arg_67_0.name)
+
+		if var_67_3:
+			setActive(var_67_2, True)
+
+			local var_67_4 = GetSpriteFromAtlas("paintingface/" .. arg_67_0.name, arg_67_0.expression)
+
+			setImageSprite(var_67_2, var_67_4)
+
+		if arg_67_0.pos:
+			setAnchoredPosition(arg_67_1, arg_67_0.pos)
+
+		if arg_67_0.dir:
+			arg_67_1.transform.localScale = Vector3(arg_67_0.dir, 1, 1)
+
+		if arg_67_0.paintingNoise:
+			arg_66_0.AddGlitchArtEffectForPating(arg_67_1, var_67_1, arg_66_3)
+
+	arg_66_1.make(function(arg_68_0, arg_68_1, arg_68_2)
+		if arg_68_0 == UIItemList.EventUpdate:
+			var_66_0(arg_66_2[arg_68_1 + 1], arg_68_2))
+	arg_66_1.align(#arg_66_2)
+
+def var_0_0.DisappearSubPainting(arg_69_0, arg_69_1, arg_69_2, arg_69_3):
+	local var_69_0 = arg_69_2.GetSubPaintings()
+	local var_69_1, var_69_2 = arg_69_2.GetDisappearTime()
+	local var_69_3 = arg_69_2.GetDisappearSeq()
+	local var_69_4 = {}
+	local var_69_5 = {}
+
+	for iter_69_0, iter_69_1 in ipairs(var_69_0):
+		table.insert(var_69_5, iter_69_1)
+
+	for iter_69_2, iter_69_3 in ipairs(var_69_3):
+		local var_69_6 = iter_69_3
+
+		table.insert(var_69_4, function(arg_70_0)
+			for iter_70_0, iter_70_1 in ipairs(var_69_5):
+				if iter_70_1.actor == var_69_6:
+					table.remove(var_69_5, iter_70_0)
+
+					break
+
+			arg_69_0.InitSubPainting(arg_69_1, var_69_5, arg_69_2)
+			arg_69_0.DelayCall(var_69_2, arg_70_0))
+
+	arg_69_1.container.SetAsFirstSibling()
+	arg_69_0.DelayCall(var_69_1, function()
+		seriesAsync(var_69_4, function()
+			arg_69_1.container.SetAsLastSibling()
+			arg_69_3()))
+
+def var_0_0.UpdateActorPostion(arg_73_0, arg_73_1, arg_73_2):
+	local var_73_0 = arg_73_2.GetPaitingOffst()
+
+	if var_73_0:
+		local var_73_1 = arg_73_1.localPosition
+
+		arg_73_1.localPosition = Vector3(var_73_1.x + (var_73_0.x or 0), var_73_1.y + (var_73_0.y or 0), 0)
+
+def var_0_0.UpdateExpression(arg_74_0, arg_74_1, arg_74_2):
+	local var_74_0 = arg_74_2.GetExPression()
+	local var_74_1 = findTF(arg_74_1, "face")
+
+	if var_74_0:
+		local var_74_2 = arg_74_2.GetPainting()
+		local var_74_3 = GetSpriteFromAtlas("paintingface/" .. var_74_2, var_74_0)
+
+		setActive(var_74_1, True)
+		setImageSprite(var_74_1, var_74_3)
+	else
+		setActive(var_74_1, False)
+
+def var_0_0.StartPaintingActions(arg_75_0, arg_75_1, arg_75_2, arg_75_3):
+	local var_75_0 = {
+		function(arg_76_0)
+			arg_75_0.StartPatiningMoveAction(arg_75_1, arg_75_2, arg_76_0),
+		function(arg_77_0)
+			arg_75_0.StartPatiningShakeAction(arg_75_1, arg_75_2, arg_77_0),
+		function(arg_78_0)
+			arg_75_0.StartPatiningZoomAction(arg_75_1, arg_75_2, arg_78_0),
+		function(arg_79_0)
+			arg_75_0.StartPatiningRotateAction(arg_75_1, arg_75_2, arg_79_0)
+	}
+
+	parallelAsync(var_75_0, function()
+		if arg_75_3:
+			arg_75_3())
+
+def var_0_0.StartPatiningShakeAction(arg_81_0, arg_81_1, arg_81_2, arg_81_3):
+	local var_81_0 = arg_81_2.GetPaintingAction(DialogueStep.PAINTING_ACTION_SHAKE)
+
+	if not var_81_0:
+		arg_81_3()
+
+		return
+
+	local function var_81_1(arg_82_0, arg_82_1)
+		local var_82_0 = arg_82_0.x or 0
+		local var_82_1 = arg_82_0.y or 10
+		local var_82_2 = arg_82_0.dur or 1
+		local var_82_3 = arg_82_0.delay or 0
+		local var_82_4 = arg_82_0.number or 1
+		local var_82_5 = tf(arg_81_1).localPosition
+
+		arg_81_0.TweenMove(arg_81_1, Vector3(var_82_5.x + var_82_0, var_82_5.y + var_82_1, 0), var_82_2, var_82_4, var_82_3, arg_82_1)
+
+	local var_81_2 = {}
+
+	for iter_81_0, iter_81_1 in pairs(var_81_0):
+		table.insert(var_81_2, function(arg_83_0)
+			var_81_1(iter_81_1, arg_83_0))
+
+	parallelAsync(var_81_2, function()
+		if arg_81_3:
+			arg_81_3())
+
+def var_0_0.StartPatiningZoomAction(arg_85_0, arg_85_1, arg_85_2, arg_85_3):
+	local var_85_0 = arg_85_2.GetPaintingAction(DialogueStep.PAINTING_ACTION_ZOOM)
+
+	if not var_85_0:
+		arg_85_3()
+
+		return
+
+	local function var_85_1(arg_86_0, arg_86_1)
+		if not arg_86_0.from:
+			local var_86_0 = {
+				0,
+				0,
+				0
+			}
+
+		local var_86_1 = arg_86_0.to or {
+			1,
+			1,
+			1
+		}
+		local var_86_2 = arg_86_0.dur or 0
+		local var_86_3 = arg_86_0.delay or 0
+
+		arg_85_0.TweenScale(arg_85_1, Vector3(var_86_1[1], var_86_1[2], var_86_1[3]), var_86_2, var_86_3, arg_86_1)
+
+	local var_85_2 = {}
+
+	for iter_85_0, iter_85_1 in pairs(var_85_0):
+		table.insert(var_85_2, function(arg_87_0)
+			var_85_1(iter_85_1, arg_87_0))
+
+	parallelAsync(var_85_2, function()
+		if arg_85_3:
+			arg_85_3())
+
+def var_0_0.StartPatiningRotateAction(arg_89_0, arg_89_1, arg_89_2, arg_89_3):
+	local var_89_0 = arg_89_2.GetPaintingAction(DialogueStep.PAINTING_ACTION_ROTATE)
+
+	if not var_89_0:
+		arg_89_3()
+
+		return
+
+	local function var_89_1(arg_90_0, arg_90_1)
+		local var_90_0 = arg_90_0.value
+		local var_90_1 = arg_90_0.dur or 1
+		local var_90_2 = arg_90_0.number or 1
+		local var_90_3 = arg_90_0.delay or 0
+
+		arg_89_0.TweenRotate(arg_89_1, var_90_0, var_90_1, var_90_2, var_90_3, arg_90_1)
+
+	local var_89_2 = {}
+
+	for iter_89_0, iter_89_1 in pairs(var_89_0):
+		table.insert(var_89_2, function(arg_91_0)
+			var_89_1(iter_89_1, arg_91_0))
+
+	parallelAsync(var_89_2, function()
+		if arg_89_3:
+			arg_89_3())
+
+def var_0_0.StartPatiningMoveAction(arg_93_0, arg_93_1, arg_93_2, arg_93_3):
+	local var_93_0 = arg_93_2.GetPaintingAction(DialogueStep.PAINTING_ACTION_MOVE)
+
+	if not var_93_0:
+		arg_93_3()
+
+		return
+
+	local function var_93_1(arg_94_0, arg_94_1)
+		local var_94_0 = arg_94_0.x or 0
+		local var_94_1 = arg_94_0.y or 0
+		local var_94_2 = arg_94_0.dur or 1
+		local var_94_3 = arg_94_0.delay or 0
+		local var_94_4 = tf(arg_93_1).localPosition
+
+		arg_93_0.TweenMove(arg_93_1, Vector3(var_94_4.x + var_94_0, var_94_4.y + var_94_1, 0), var_94_2, 1, var_94_3, arg_94_1)
+
+	local var_93_2 = {}
+
+	for iter_93_0, iter_93_1 in pairs(var_93_0):
+		table.insert(var_93_2, function(arg_95_0)
+			var_93_1(iter_93_1, arg_95_0))
+
+	parallelAsync(var_93_2, function()
+		if arg_93_3:
+			arg_93_3())
+
+def var_0_0.StartMovePrevPaintingToSide(arg_97_0, arg_97_1, arg_97_2, arg_97_3):
+	local var_97_0 = arg_97_1.GetPaintingMoveToSide()
+
+	if not var_97_0 or not arg_97_2:
+		arg_97_3()
+
+		return
+
+	local var_97_1 = arg_97_0.GetSideTF(arg_97_2.GetSide())
+
+	if not var_97_1:
+		arg_97_3()
+
+		return
+
+	local var_97_2 = var_97_0.time
+	local var_97_3 = var_97_0.side
+	local var_97_4 = arg_97_0.GetSideTF(var_97_3)
+
+	if not var_97_4:
+		arg_97_3()
+
+		return
+
+	if arg_97_1.side != arg_97_2.side:
+		if var_97_1.Find("fitter").childCount > 0:
+			local var_97_5 = var_97_1.Find("fitter").GetChild(0)
+
+			removeAllChildren(var_97_4.Find("fitter"))
+			setParent(var_97_5, var_97_4.Find("fitter"))
+
+			local var_97_6 = arg_97_2.GetPaintingDir()
+
+			var_97_4.localScale = Vector3(var_97_6, math.abs(var_97_6), 1)
+	else
+		local var_97_7 = arg_97_2.GetPainting()
+
+		if var_97_7:
+			setPaintingPrefab(var_97_4, var_97_7, "duihua")
+
+	local var_97_8 = tf(var_97_4).localPosition
+
+	arg_97_0.TweenValue(var_97_4, var_97_1.localPosition.x, var_97_8.x, var_97_2, 0, function(arg_98_0)
+		setAnchoredPosition(var_97_4, {
+			x = arg_98_0
+		}), arg_97_3)
+
+	var_97_4.localPosition = Vector2(var_97_1.localPosition.x, var_97_4.localPosition.y, 0)
+
+local function var_0_9(arg_99_0, arg_99_1, arg_99_2, arg_99_3, arg_99_4)
+	local var_99_0 = arg_99_1.GetComponentsInChildren(typeof(Image))
+
+	for iter_99_0 = 0, var_99_0.Length - 1:
+		local var_99_1 = var_99_0[iter_99_0]
+
+		if var_99_1.gameObject.name == "temp_mask":
+			var_99_1.material = arg_99_4 and arg_99_0.maskMaterial or arg_99_0.maskMaterialForWithLayer
+		elif var_99_1.gameObject.name == "face":
+			var_99_1.material = arg_99_0.glitchArtMaterial
+		elif arg_99_3.hasPaintbg and var_99_1.gameObject == arg_99_2.gameObject:
+			var_99_1.material = arg_99_0.glitchArtMaterialForPaintingBg
+		else
+			var_99_1.material = arg_99_0.glitchArtMaterialForPainting
+
+local function var_0_10(arg_100_0, arg_100_1, arg_100_2, arg_100_3, arg_100_4)
+	local var_100_0 = arg_100_1.GetComponentsInChildren(typeof(Image))
+	local var_100_1 = {}
+	local var_100_2 = arg_100_2.GetComponent(typeof(Image))
+
+	if var_100_2:
+		table.insert(var_100_1, var_100_2.gameObject)
+
+	for iter_100_0 = 1, arg_100_3 - 1:
+		local var_100_3 = arg_100_4.GetChild(iter_100_0 - 1)
+
+		table.insert(var_100_1, var_100_3.gameObject)
+
+	for iter_100_1 = 0, var_100_0.Length - 1:
+		local var_100_4 = var_100_0[iter_100_1]
+
+		if var_100_4.gameObject.name == "temp_mask":
+			var_100_4.material = arg_100_0.maskMaterial
+		elif var_100_4.gameObject.name == "face":
+			var_100_4.material = arg_100_0.glitchArtMaterial
+		elif table.contains(var_100_1, var_100_4.gameObject):
+			var_100_4.material = arg_100_0.glitchArtMaterialForPaintingBg
+		else
+			var_100_4.material = arg_100_0.glitchArtMaterialForPainting
+
+def var_0_0.AddGlitchArtEffectForPating(arg_101_0, arg_101_1, arg_101_2, arg_101_3):
+	local var_101_0 = arg_101_3.ShouldAddGlitchArtEffect()
+	local var_101_1 = arg_101_3.IsNoHeadPainting()
+
+	if var_101_0 and arg_101_3.GetExPression() != None and not var_101_1:
+		local var_101_2 = arg_101_2.Find("face")
+
+		cloneTplTo(var_101_2, var_101_2.parent, "temp_mask").SetAsFirstSibling()
+
+		local var_101_3 = arg_101_2.Find("layers")
+		local var_101_4 = IsNil(var_101_3)
+
+		if not var_101_4 and arg_101_3.GetPaintingRwIndex() > 0:
+			var_0_10(arg_101_0, arg_101_1, arg_101_2, arg_101_3.GetPaintingRwIndex(), var_101_3)
+		else
+			var_0_9(arg_101_0, arg_101_1, arg_101_2, arg_101_3, var_101_4)
+	elif var_101_0:
+		local var_101_5 = arg_101_1.GetComponentsInChildren(typeof(Image))
+
+		for iter_101_0 = 0, var_101_5.Length - 1:
+			var_101_5[iter_101_0].material = arg_101_0.glitchArtMaterial
+
+	if var_101_0:
+		local var_101_6 = GameObject.Find("/OverlayCamera/Overlay/UIMain/AwardInfoUI(Clone)/items/SpriteMask")
+
+		if var_101_6 and var_101_6.activeInHierarchy:
+			setActive(var_101_6, False)
+
+			arg_101_0.spriteMask = var_101_6
+
+def var_0_0.UpdateContent(arg_102_0, arg_102_1, arg_102_2):
+	local function var_102_0()
+		setActive(arg_102_0.nextTr, True)
+		arg_102_2()
+
+	for iter_102_0, iter_102_1 in ipairs(arg_102_0.tags):
+		setActive(iter_102_1, iter_102_0 == arg_102_1.GetTag())
+
+	arg_102_0.conentTxt.fontSize = arg_102_1.GetFontSize() or arg_102_0.defualtFontSize
+
+	local var_102_1 = arg_102_1.GetContent()
+
+	arg_102_0.conentTxt.text = var_102_1
+
+	local var_102_2 = 999
+
+	if var_102_1 and var_102_1 != "":
+		var_102_2 = System.String.New(var_102_1).Length
+
+	if var_102_1 and var_102_1 != "" and var_102_1 != "…" and #var_102_1 > 1 and var_102_2 > 1:
+		arg_102_0.UpdateTypeWriter(arg_102_1, var_102_0)
+	else
+		var_102_0()
+
+	local var_102_3, var_102_4, var_102_5, var_102_6 = arg_102_0.GetSideTF(arg_102_1.GetSide())
+
+	if var_102_4:
+		local var_102_7 = arg_102_1.GetNameWithColor()
+		local var_102_8 = var_102_7 and var_102_7 != ""
+
+		setActive(var_102_4, var_102_8)
+
+		if var_102_8:
+			local var_102_9 = arg_102_1.GetNameColorCode()
+
+			var_102_4.Find("Text").GetComponent(typeof(Outline)).effectColor = Color.NewHex(var_102_9)
+
+		var_102_5.text = var_102_7
+
+		setText(var_102_5.gameObject.transform.Find("subText"), arg_102_1.GetSubActorName())
+
+def var_0_0.SetContentBgAlpha(arg_104_0, arg_104_1):
+	if arg_104_0.contentBgAlpha != arg_104_1:
+		for iter_104_0, iter_104_1 in ipairs(arg_104_0.contentBgs):
+			GetOrAddComponent(iter_104_1, typeof(CanvasGroup)).alpha = arg_104_1
+
+		arg_104_0.contentBgAlpha = arg_104_1
+
+def var_0_0.GetSideTF(arg_105_0, arg_105_1):
+	local var_105_0
+	local var_105_1
+	local var_105_2
+	local var_105_3
+
+	if DialogueStep.SIDE_LEFT == arg_105_1:
+		var_105_0, var_105_1, var_105_2, var_105_3 = arg_105_0.actorLeft, arg_105_0.nameTr, arg_105_0.nameTxt, arg_105_0.subActorLeft
+	elif DialogueStep.SIDE_RIGHT == arg_105_1:
+		var_105_0, var_105_1, var_105_2, var_105_3 = arg_105_0.actorRgiht, arg_105_0.nameTr, arg_105_0.nameTxt, arg_105_0.subActorRgiht
+	elif DialogueStep.SIDE_MIDDLE == arg_105_1:
+		var_105_0, var_105_1, var_105_2, var_105_3 = arg_105_0.actorMiddle, arg_105_0.nameTr, arg_105_0.nameTxt, arg_105_0.subActorMiddle
+
+	return var_105_0, var_105_1, var_105_2, var_105_3
+
+def var_0_0.RecyclesSubPantings(arg_106_0, arg_106_1):
+	arg_106_1.each(function(arg_107_0, arg_107_1)
+		arg_106_0.RecyclePainting(arg_107_1))
+
+local function var_0_11(arg_108_0)
+	if arg_108_0.Find("fitter").childCount == 0:
+		return
+
+	local var_108_0 = arg_108_0.Find("fitter").GetChild(0)
+
+	if var_108_0:
+		local var_108_1 = findTF(var_108_0, "shadow")
+
+		if var_108_1:
+			setActive(var_108_1, False)
+
+		local var_108_2 = arg_108_0.GetComponentsInChildren(typeof(Image))
+
+		for iter_108_0 = 0, var_108_2.Length - 1:
+			local var_108_3 = var_108_2[iter_108_0]
+			local var_108_4 = Color.white
+
+			if var_108_3.material != var_108_3.defaultGraphicMaterial:
+				var_108_3.material = var_108_3.defaultGraphicMaterial
+
+			var_108_3.material.SetColor("_Color", var_108_4)
+
+		setGray(arg_108_0, False, True)
+		retPaintingPrefab(arg_108_0, var_108_0.name)
+
+		local var_108_5 = var_108_0.Find("temp_mask")
+
+		if var_108_5:
+			Destroy(var_108_5)
+
+def var_0_0.ClearMeshPainting(arg_109_0, arg_109_1):
+	arg_109_0.ResetMeshPainting(arg_109_1)
+
+	if arg_109_1.Find("fitter").childCount == 0:
+		return
+
+	local var_109_0 = arg_109_1.Find("fitter").GetChild(0)
+
+	if var_109_0:
+		retPaintingPrefab(arg_109_1, var_109_0.name)
+
+def var_0_0.ResetMeshPainting(arg_110_0, arg_110_1):
+	if arg_110_1.Find("fitter").childCount == 0:
+		return
+
+	local var_110_0 = arg_110_1.Find("fitter").GetChild(0)
+
+	if var_110_0:
+		local var_110_1 = findTF(var_110_0, "shadow")
+
+		if var_110_1:
+			setActive(var_110_1, False)
+
+		local var_110_2 = arg_110_1.GetComponentsInChildren(typeof(Image))
+
+		for iter_110_0 = 0, var_110_2.Length - 1:
+			local var_110_3 = var_110_2[iter_110_0]
+			local var_110_4 = Color.white
+
+			if var_110_3.material != var_110_3.defaultGraphicMaterial:
+				var_110_3.material = var_110_3.defaultGraphicMaterial
+
+				var_110_3.material.SetColor("_Color", var_110_4)
+			else
+				var_110_3.material = None
+
+		setGray(arg_110_1, False, True)
+
+		local var_110_5 = var_110_0.Find("temp_mask")
+
+		if var_110_5:
+			Destroy(var_110_5)
+
+local function var_0_12(arg_111_0, arg_111_1)
+	local var_111_0 = arg_111_0.live2dChars[arg_111_1]
+	local var_111_1 = False
+
+	if var_111_0:
+		local var_111_2 = var_111_0._go.GetComponent("Live2D.Cubism.Rendering.CubismRenderController")
+
+		ReflectionHelp.RefSetProperty(typeof("Live2D.Cubism.Rendering.CubismRenderController"), "SortingOrder", var_111_2, 0)
+		var_111_0.Dispose()
+
+		arg_111_0.live2dChars[arg_111_1] = None
+		var_111_1 = True
+
+	local var_111_3 = table.getCount(arg_111_0.live2dChars) <= 0
+
+	if var_111_1 and var_111_3:
+		local var_111_4 = arg_111_0.front.GetComponent(typeof(GraphicRaycaster))
+
+		if var_111_4:
+			Object.Destroy(var_111_4)
+
+		local var_111_5 = arg_111_0.front.GetComponent(typeof(Canvas))
+
+		if var_111_5:
+			Object.Destroy(var_111_5)
+
+local function var_0_13(arg_112_0, arg_112_1)
+	local var_112_0 = arg_112_0.spinePainings[arg_112_1]
+	local var_112_1 = False
+
+	if var_112_0:
+		var_112_0.Dispose()
+
+		arg_112_0.spinePainings[arg_112_1] = None
+		var_112_1 = True
+
+	local var_112_2 = table.getCount(arg_112_0.spinePainings) <= 0
+
+	if var_112_1 and var_112_2:
+		local var_112_3 = arg_112_0.front.GetComponent(typeof(GraphicRaycaster))
+
+		if var_112_3:
+			Object.Destroy(var_112_3)
+
+		local var_112_4 = arg_112_0.front.GetComponent(typeof(Canvas))
+
+		if var_112_4:
+			Object.Destroy(var_112_4)
+
+def var_0_0.RecyclePainting(arg_113_0, arg_113_1):
+	if type(arg_113_1) == "table":
+		local var_113_0 = _.map(arg_113_1, function(arg_114_0)
+			return arg_113_0[arg_114_0])
+
+		arg_113_0.RecyclePaintingList(var_113_0)
+	else
+		arg_113_0.ClearMeshPainting(arg_113_1)
+		var_0_12(arg_113_0, arg_113_1)
+		var_0_13(arg_113_0, arg_113_1)
+
+def var_0_0.RecyclePaintingList(arg_115_0, arg_115_1):
+	for iter_115_0, iter_115_1 in ipairs(arg_115_1):
+		arg_115_0.ClearMeshPainting(iter_115_1)
+		var_0_12(arg_115_0, iter_115_1)
+		var_0_13(arg_115_0, iter_115_1)
+
+def var_0_0.Resume(arg_116_0):
+	var_0_0.super.Resume(arg_116_0)
+
+	if arg_116_0.typewriterSpeed != 0:
+		arg_116_0.typewriter.setSpeed(arg_116_0.typewriterSpeed)
+
+def var_0_0.Pause(arg_117_0):
+	var_0_0.super.Pause(arg_117_0)
+
+	if arg_117_0.typewriterSpeed != 0:
+		arg_117_0.typewriter.setSpeed(100000000)
+
+def var_0_0.OnClear(arg_118_0):
+	if arg_118_0.spriteMask:
+		setActive(arg_118_0.spriteMask, True)
+
+		arg_118_0.spriteMask = None
+
+def var_0_0.FadeOutPainting(arg_119_0, arg_119_1, arg_119_2, arg_119_3):
+	local var_119_0 = arg_119_2.GetComponent(typeof(CanvasGroup))
+	local var_119_1 = arg_119_1.GetFadeOutPaintingTime()
+
+	if var_119_1 <= 0:
+		arg_119_3()
+
+		return
+
+	local var_119_2 = arg_119_1.ShouldAddHeadMaskWhenFade()
+
+	if var_119_2:
+		arg_119_0.AddHeadMask(arg_119_2)
+
+	arg_119_0.TweenValueForcanvasGroup(var_119_0, 1, 0, var_119_1, 0, function()
+		if var_119_2:
+			arg_119_0.ClearHeadMask(arg_119_2)
+
+		arg_119_3())
+
+def var_0_0.OnWillExit(arg_121_0, arg_121_1, arg_121_2, arg_121_3):
+	if not arg_121_2 or not arg_121_2.IsDialogueMode():
+		arg_121_3()
+
+		return
+
+	local var_121_0 = arg_121_0.GetRecycleActorList(arg_121_2, arg_121_1)
+	local var_121_1
+
+	if arg_121_2.ShouldMoveToSide():
+		var_121_1 = arg_121_0.GetSideTF(arg_121_1.GetSide())
+
+	local var_121_2 = {}
+
+	for iter_121_0, iter_121_1 in pairs(var_121_0):
+		if (not var_121_1 or iter_121_1 != var_121_1) and iter_121_1.Find("fitter").childCount > 0:
+			table.insert(var_121_2, function(arg_122_0)
+				arg_121_0.FadeOutPainting(arg_121_1, iter_121_1, arg_122_0))
+
+	parallelAsync(var_121_2, arg_121_3)
+
+def var_0_0.OnEnd(arg_123_0):
+	arg_123_0.conentTxt.fontSize = arg_123_0.defualtFontSize
+
+	arg_123_0.ClearGlitchArtForPortrait()
+	arg_123_0.ClearCanMarkNode()
+
+	local var_123_0 = {
+		"actorLeft",
+		"actorMiddle",
+		"actorRgiht"
+	}
+
+	arg_123_0.RecyclePainting(var_123_0)
+
+	arg_123_0.conentTxt.text = ""
+	arg_123_0.nameTxt.text = ""
+
+	for iter_123_0, iter_123_1 in ipairs({
+		"actorLeft",
+		"actorMiddle",
+		"actorRgiht"
+	}):
+		arg_123_0[iter_123_1].GetComponent(typeof(CanvasGroup)).alpha = 1
+
+return var_0_0

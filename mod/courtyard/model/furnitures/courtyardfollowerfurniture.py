@@ -1,0 +1,52 @@
+local var_0_0 = class("CourtYardFollowerFurniture", import(".CourtYardFurniture"))
+
+def var_0_0.InitSlots(arg_1_0):
+	arg_1_0.ratios = {}
+
+	table.insert(arg_1_0.slots, CourtYardFollowerSlot.New(1, arg_1_0.config.spine))
+
+def var_0_0.GetInterActionTime(arg_2_0):
+	return math.random(5, 10)
+
+def var_0_0.GetRatio(arg_3_0, arg_3_1):
+	return arg_3_0.ratios[arg_3_1] or 0
+
+def var_0_0.IncreaseRatio(arg_4_0, arg_4_1):
+	arg_4_0.ratios[arg_4_1] = 100
+
+def var_0_0.ReduceRatio(arg_5_0, arg_5_1):
+	arg_5_0.ratios[arg_5_1] = arg_5_0.GetRatio(arg_5_1) - 20
+
+def var_0_0.CanFollower(arg_6_0, arg_6_1):
+	if arg_6_0.IsUsing():
+		return False
+
+	local var_6_0 = arg_6_0.GetRatio(arg_6_1) <= 0
+
+	if not var_6_0:
+		arg_6_0.ReduceRatio(arg_6_1)
+
+	return var_6_0
+
+def var_0_0.IsUsing(arg_7_0):
+	return arg_7_0.slots[1].IsUsing()
+
+def var_0_0.StartInteraction(arg_8_0, arg_8_1):
+	var_0_0.super.StartInteraction(arg_8_0, arg_8_1)
+
+	local var_8_0 = arg_8_1.GetOwner()
+
+	arg_8_0.IncreaseRatio(var_8_0)
+
+def var_0_0.GetOwner(arg_9_0):
+	if arg_9_0.IsUsing():
+		return arg_9_0.slots[1].GetOwner()
+
+def var_0_0.Stop(arg_10_0):
+	arg_10_0.slots[1].Stop()
+
+def var_0_0.SetPosition(arg_11_0, arg_11_1):
+	var_0_0.super.SetPosition(arg_11_0, arg_11_1)
+	arg_11_0.DispatchEvent(CourtYardEvent.ROTATE_FURNITURE, arg_11_0.dir)
+
+return var_0_0

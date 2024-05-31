@@ -1,0 +1,196 @@
+local var_0_0 = class("NewShopSkinCard")
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	arg_1_0._go = arg_1_1
+	arg_1_0._tf = tf(arg_1_1)
+	arg_1_0._content = arg_1_0._tf.Find("frame/content")
+	arg_1_0._mask = arg_1_0._tf.Find("frame/mask")
+	arg_1_0._icon = arg_1_0._tf.Find("frame/content/main/bg/icon").GetComponent(typeof(Image))
+	arg_1_0._priceTF = arg_1_0._tf.Find("frame/content/main/bg/price")
+
+	setActive(arg_1_0._priceTF, False)
+
+	arg_1_0._priceIcon = arg_1_0._priceTF.Find("gem").GetComponent(typeof(Image))
+	arg_1_0._priceTxt = arg_1_0._priceTF.Find("gem/Text").GetComponent(typeof(Text))
+	arg_1_0._opriceTxt = arg_1_0._priceTF.Find("originalprice").GetComponent(typeof(Text))
+	arg_1_0.tagImg = arg_1_0._tf.Find("frame/content/top/tag_activity").GetComponent(typeof(Image))
+	arg_1_0.tagEnImg = arg_1_0.tagImg.gameObject.transform.Find("Image").GetComponent(typeof(Image))
+	arg_1_0.txt = arg_1_0._tf.Find("frame/content/top/Text").GetComponent(typeof(Text))
+	arg_1_0.txt.text = ""
+	arg_1_0.discountTag = arg_1_0._tf.Find("frame/content/top/tag_discount")
+	arg_1_0.discountTagOffTxt = arg_1_0.discountTag.Find("Text").GetComponent(typeof(Text))
+	arg_1_0.timelimitTag = arg_1_0._tf.Find("frame/content/top/tag_timelimit")
+	arg_1_0.isSelected = False
+	arg_1_0._icon.transform.localScale = Vector3.zero
+
+local var_0_1 = 1
+local var_0_2 = 2
+local var_0_3 = 3
+local var_0_4 = 4
+local var_0_5 = 5
+local var_0_6 = -1
+local var_0_7 = -2
+local var_0_8 = -3
+local var_0_9 = -4
+local var_0_10 = {
+	[302053] = 39
+}
+local var_0_11 = {
+	[var_0_1] = {
+		"rexiao",
+		"hot_sells"
+	},
+	[var_0_2] = {
+		"xinpin",
+		"xinpin"
+	},
+	[var_0_3] = {
+		"tuijian",
+		"tujian"
+	},
+	[var_0_4] = {
+		"huodong",
+		"huodong"
+	},
+	[var_0_5] = {
+		"",
+		""
+	},
+	[var_0_6] = {
+		"fanchang",
+		""
+	},
+	[var_0_7] = {
+		"",
+		""
+	},
+	[var_0_8] = {
+		"yigoumai",
+		"clothing"
+	},
+	[var_0_9] = {
+		"",
+		"clothing"
+	}
+}
+
+local function var_0_12(arg_2_0, arg_2_1)
+	local var_2_0 = arg_2_0.buyCount == 0
+
+	if arg_2_1 and var_2_0:
+		return var_0_6
+
+	if arg_2_0.getConfig("genre") == ShopArgs.SkinShopTimeLimit:
+		return var_0_7
+
+	if not var_2_0:
+		return var_0_8
+
+	local var_2_1 = arg_2_0.getConfig("tag")
+
+	if (arg_2_0.isDisCount() or var_2_1 == var_0_5) and not arg_2_0.IsItemDiscountType():
+		return var_0_5
+	elif var_0_11[var_2_1]:
+		return var_2_1
+	else
+		return var_0_9
+
+def var_0_0.Update(arg_3_0, arg_3_1, arg_3_2, arg_3_3):
+	arg_3_0.commodity = arg_3_1
+	arg_3_0.isReturn = arg_3_3
+
+	local var_3_0 = arg_3_1.getSkinId()
+	local var_3_1 = pg.ship_skin_template
+
+	arg_3_0.shipSkinConfig = var_3_1[var_3_0]
+
+	local var_3_2 = var_3_1[var_3_0].prefab
+
+	arg_3_0._icon.sprite = None
+	arg_3_0._icon.transform.localScale = Vector3.zero
+
+	LoadSpriteAsync("shipYardIcon/" .. var_3_2, function(arg_4_0)
+		if not IsNil(arg_3_0._icon):
+			arg_3_0._icon.sprite = arg_4_0
+			arg_3_0._icon.transform.localScale = Vector3.one)
+
+	local var_3_3 = False
+	local var_3_4 = False
+	local var_3_5 = arg_3_0.commodity.type == Goods.TYPE_SKIN
+
+	if var_3_5:
+		local var_3_6 = arg_3_1.getConfig("resource_type")
+
+		LoadSpriteAsync(Drop.New({
+			type = DROP_TYPE_RESOURCE,
+			id = var_3_6
+		}).getIcon(), function(arg_5_0)
+			if IsNil(arg_3_0._priceIcon):
+				return
+
+			arg_3_0._priceIcon.sprite = arg_5_0)
+
+		local var_3_7 = arg_3_1.getConfig("resource_num")
+		local var_3_8 = arg_3_1.isDisCount()
+		local var_3_9, var_3_10 = arg_3_1.GetPrice()
+
+		arg_3_0._priceTxt.text = var_3_9
+		arg_3_0._opriceTxt.text = var_3_7
+
+		setActive(go(arg_3_0._opriceTxt), var_3_8 and var_3_10 > 0)
+
+		local var_3_11 = var_0_12(arg_3_1, arg_3_3)
+
+		if var_3_11 == var_0_5:
+			var_3_3 = True
+			arg_3_0.discountTagOffTxt.text = string.format("%0.2f", var_3_10) .. "%"
+		elif var_3_11 == var_0_7:
+			var_3_4 = True
+
+			setActive(arg_3_0.timelimitTag, True)
+		else
+			local var_3_12 = var_0_11[var_3_11][1]
+			local var_3_13 = var_0_11[var_3_11][2]
+
+			arg_3_0.tagImg.enabled = var_3_12 and var_3_12 != ""
+
+			if arg_3_0.tagImg.enabled:
+				arg_3_0.tagImg.sprite = GetSpriteFromAtlas("ui/SkinShopUI_atlas", "tag_" .. var_3_12)
+
+			arg_3_0.tagEnImg.enabled = var_3_13 and var_3_13 != ""
+
+			if arg_3_0.tagEnImg.enabled:
+				arg_3_0.tagEnImg.sprite = GetSpriteFromAtlas("ui/SkinShopUI_atlas", "en_text_" .. var_3_13 .. "_text")
+
+	setActive(arg_3_0.timelimitTag, var_3_5 and var_3_4)
+	setActive(arg_3_0.tagImg.gameObject, var_3_5 and not var_3_3 and not var_3_4)
+	setActive(arg_3_0.discountTag, var_3_5 and var_3_3)
+
+	local var_3_14 = var_0_10[var_3_0] or 0
+
+	setAnchoredPosition(arg_3_0._icon.gameObject, {
+		y = var_3_14
+	})
+	arg_3_0.UpdateSelected(arg_3_2)
+
+def var_0_0.UpdateSelected(arg_6_0, arg_6_1):
+	if arg_6_0.isSelected != arg_6_1:
+		arg_6_0.isSelected = arg_6_1
+
+		local var_6_0 = arg_6_1 and -26 or -126
+
+		arg_6_0._content.localPosition = Vector3(0, var_6_0, 0)
+
+		local var_6_1 = arg_6_0.commodity.type == Goods.TYPE_SKIN
+
+		setActive(arg_6_0._priceTF, arg_6_1 and var_6_1)
+		setActive(arg_6_0._mask, not arg_6_1)
+
+def var_0_0.Dispose(arg_7_0):
+	arg_7_0.UpdateSelected(False)
+
+	arg_7_0._icon.transform.localScale = Vector3.one
+	arg_7_0._go = None
+	arg_7_0._tf = None
+
+return var_0_0

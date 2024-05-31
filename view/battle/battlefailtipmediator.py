@@ -1,0 +1,243 @@
+local var_0_0 = class("BattleFailTipMediator", import("..base.ContextMediator"))
+
+var_0_0.CHAPTER_RETREAT = "BattleFailTipMediator.CHAPTER_RETREAT"
+var_0_0.GO_NAVALTACTICS = "BattleFailTipMediator.GO_NAVALTACTICS"
+var_0_0.GO_HIGEST_CHAPTER = "BattleFailTipMediator.GO_HIGEST_CHAPTER"
+var_0_0.GO_DOCKYARD_EQUIP = "BattleFailTipMediator.GO_DOCKYARD_EQUIP"
+var_0_0.GO_DOCKYARD_SHIP = "BattleFailTipMediator.GO_DOCKYARD_SHIP"
+
+def var_0_0.register(arg_1_0):
+	arg_1_0.initData()
+	arg_1_0.bindEvent()
+
+def var_0_0.initData(arg_2_0):
+	arg_2_0.mainShips = arg_2_0.contextData.mainShips
+	arg_2_0.battleSystem = arg_2_0.contextData.battleSystem
+
+def var_0_0.bindEvent(arg_3_0):
+	arg_3_0.bind(var_0_0.CHAPTER_RETREAT, function(arg_4_0, arg_4_1)
+		local var_4_0 = getProxy(ChapterProxy).getActiveChapter()
+		local var_4_1
+
+		if var_4_0:
+			var_4_1 = var_4_0.getShips()
+		else
+			var_4_1 = arg_3_0.mainShips
+
+		local var_4_2 = {}
+
+		for iter_4_0, iter_4_1 in ipairs(var_4_1):
+			var_4_2[#var_4_2 + 1] = iter_4_1.id
+
+		arg_3_0.tempShipIDList = var_4_2
+
+		arg_3_0.sendNotification(GAME.CHAPTER_OP, {
+			type = ChapterConst.OpRetreat
+		}))
+	arg_3_0.bind(var_0_0.GO_HIGEST_CHAPTER, function(arg_5_0)
+		arg_3_0.removeContextBeforeGO()
+
+		local var_5_0, var_5_1 = getProxy(ChapterProxy).getHigestClearChapterAndMap()
+
+		arg_3_0.sendNotification(GAME.CHANGE_SCENE, SCENE.LEVEL, {
+			targetChapter = var_5_0,
+			targetMap = var_5_1
+		}))
+	arg_3_0.bind(var_0_0.GO_DOCKYARD_EQUIP, function(arg_6_0)
+		arg_3_0.removeContextBeforeGO()
+
+		if not arg_3_0.tempShipIDList:
+			local var_6_0 = {}
+
+			for iter_6_0, iter_6_1 in ipairs(arg_3_0.mainShips):
+				var_6_0[#var_6_0 + 1] = iter_6_1.id
+
+			arg_3_0.tempShipIDList = var_6_0
+
+		arg_3_0.sendNotification(GAME.CHANGE_SCENE, SCENE.DOCKYARD, {
+			priorEquipUpShipIDList = arg_3_0.tempShipIDList,
+			priorMode = DockyardScene.PRIOR_MODE_EQUIP_UP,
+			mode = DockyardScene.MODE_OVERVIEW,
+			def onClick:(arg_7_0, arg_7_1)
+				pg.m02.sendNotification(GAME.GO_SCENE, SCENE.SHIPINFO, {
+					openEquipUpgrade = True,
+					shipId = arg_7_0.id,
+					shipVOs = arg_7_1,
+					page = ShipViewConst.PAGE.EQUIPMENT
+				})
+		}))
+	arg_3_0.bind(var_0_0.GO_DOCKYARD_SHIP, function(arg_8_0)
+		arg_3_0.removeContextBeforeGO()
+
+		if not arg_3_0.tempShipIDList:
+			local var_8_0 = {}
+
+			for iter_8_0, iter_8_1 in ipairs(arg_3_0.mainShips):
+				var_8_0[#var_8_0 + 1] = iter_8_1.id
+
+			arg_3_0.tempShipIDList = var_8_0
+
+		arg_3_0.sendNotification(GAME.CHANGE_SCENE, SCENE.DOCKYARD, {
+			priorEquipUpShipIDList = arg_3_0.tempShipIDList,
+			priorMode = DockyardScene.PRIOR_MODE_SHIP_UP,
+			mode = DockyardScene.MODE_OVERVIEW,
+			def onClick:(arg_9_0, arg_9_1)
+				pg.m02.sendNotification(GAME.GO_SCENE, SCENE.SHIPINFO, {
+					shipId = arg_9_0.id,
+					shipVOs = arg_9_1,
+					page = ShipViewConst.PAGE.INTENSIFY
+				})
+		}))
+	arg_3_0.bind(var_0_0.GO_NAVALTACTICS, function(arg_10_0)
+		arg_3_0.removeContextBeforeGO()
+		arg_3_0.sendNotification(GAME.CHANGE_SCENE, SCENE.NAVALTACTICS))
+
+def var_0_0.listNotificationInterests(arg_11_0):
+	return {
+		GAME.CHAPTER_OP_DONE
+	}
+
+def var_0_0.handleNotification(arg_12_0, arg_12_1):
+	local var_12_0 = arg_12_1.getName()
+	local var_12_1 = arg_12_1.getBody()
+
+	if var_12_0 == GAME.CHAPTER_OP_DONE:
+		if arg_12_0.viewComponent.lastClickBtn == BattleFailTipLayer.PowerUpBtn.ShipLevelUp:
+			local var_12_2 = getProxy(ContextProxy).getContextByMediator(LevelMediator2)
+
+			if var_12_2:
+				local var_12_3 = var_12_2.getContextByMediator(ChapterPreCombatMediator)
+
+				if var_12_3:
+					var_12_2.removeChild(var_12_3)
+
+				local var_12_4 = var_12_2.getContextByMediator(BattleResultMediator)
+
+				if var_12_4:
+					var_12_2.removeChild(var_12_4)
+
+			local var_12_5, var_12_6 = getProxy(ChapterProxy).getHigestClearChapterAndMap()
+
+			arg_12_0.sendNotification(GAME.GO_BACK, {
+				targetChapter = var_12_5,
+				targetMap = var_12_6
+			})
+		elif arg_12_0.viewComponent.lastClickBtn == BattleFailTipLayer.PowerUpBtn.EquipLevelUp:
+			local var_12_7 = getProxy(ContextProxy).getContextByMediator(LevelMediator2)
+
+			if var_12_7:
+				local var_12_8 = var_12_7.getContextByMediator(ChapterPreCombatMediator)
+
+				if var_12_8:
+					var_12_7.removeChild(var_12_8)
+
+				local var_12_9 = var_12_7.getContextByMediator(BattleResultMediator)
+
+				if var_12_9:
+					var_12_7.removeChild(var_12_9)
+
+			arg_12_0.sendNotification(GAME.CHANGE_SCENE, SCENE.DOCKYARD, {
+				priorEquipUpShipIDList = arg_12_0.tempShipIDList,
+				priorMode = DockyardScene.PRIOR_MODE_EQUIP_UP,
+				mode = DockyardScene.MODE_OVERVIEW,
+				def onClick:(arg_13_0, arg_13_1)
+					pg.m02.sendNotification(GAME.GO_SCENE, SCENE.SHIPINFO, {
+						openEquipUpgrade = True,
+						shipId = arg_13_0.id,
+						shipVOs = arg_13_1,
+						page = ShipViewConst.PAGE.EQUIPMENT
+					})
+			})
+		elif arg_12_0.viewComponent.lastClickBtn == BattleFailTipLayer.PowerUpBtn.SkillLevelUp:
+			local var_12_10 = getProxy(ContextProxy).getContextByMediator(LevelMediator2)
+
+			if var_12_10:
+				local var_12_11 = var_12_10.getContextByMediator(ChapterPreCombatMediator)
+
+				if var_12_11:
+					var_12_10.removeChild(var_12_11)
+
+				local var_12_12 = var_12_10.getContextByMediator(BattleResultMediator)
+
+				if var_12_12:
+					var_12_10.removeChild(var_12_12)
+
+			arg_12_0.sendNotification(GAME.CHANGE_SCENE, SCENE.NAVALTACTICS)
+		elif arg_12_0.viewComponent.lastClickBtn == BattleFailTipLayer.PowerUpBtn.ShipBreakUp:
+			local var_12_13 = getProxy(ContextProxy).getContextByMediator(LevelMediator2)
+
+			if var_12_13:
+				local var_12_14 = var_12_13.getContextByMediator(ChapterPreCombatMediator)
+
+				if var_12_14:
+					var_12_13.removeChild(var_12_14)
+
+				local var_12_15 = var_12_13.getContextByMediator(BattleResultMediator)
+
+				if var_12_15:
+					var_12_13.removeChild(var_12_15)
+
+			arg_12_0.sendNotification(GAME.CHANGE_SCENE, SCENE.DOCKYARD, {
+				priorEquipUpShipIDList = arg_12_0.tempShipIDList,
+				priorMode = DockyardScene.PRIOR_MODE_SHIP_UP,
+				mode = DockyardScene.MODE_OVERVIEW,
+				def onClick:(arg_14_0, arg_14_1)
+					pg.m02.sendNotification(GAME.GO_SCENE, SCENE.SHIPINFO, {
+						shipId = arg_14_0.id,
+						shipVOs = arg_14_1,
+						page = ShipViewConst.PAGE.INTENSIFY
+					})
+			})
+
+		arg_12_0.tempShipIDList = None
+
+def var_0_0.removeContextBeforeGO(arg_15_0):
+	local var_15_0 = getProxy(ContextProxy)
+	local var_15_1 = arg_15_0.battleSystem
+
+	if var_15_1 == SYSTEM_SCENARIO:
+		local var_15_2 = var_15_0.getContextByMediator(LevelMediator2)
+
+		if var_15_2:
+			local var_15_3 = var_15_2.getContextByMediator(ChapterPreCombatMediator)
+
+			if var_15_3:
+				var_15_2.removeChild(var_15_3)
+
+			local var_15_4 = var_15_2.getContextByMediator(BattleResultMediator)
+
+			if var_15_4:
+				var_15_2.removeChild(var_15_4)
+	elif var_15_1 == SYSTEM_ROUTINE or var_15_1 == SYSTEM_SUB_ROUTINE:
+		local var_15_5 = var_15_0.getContextByMediator(DailyLevelMediator)
+
+		if var_15_5:
+			local var_15_6 = var_15_5.getContextByMediator(PreCombatMediator)
+
+			if var_15_6:
+				var_15_5.removeChild(var_15_6)
+
+			local var_15_7 = var_15_5.getContextByMediator(BattleResultMediator)
+
+			if var_15_7:
+				var_15_5.removeChild(var_15_7)
+	elif var_15_1 == SYSTEM_DUEL:
+		local var_15_8 = var_15_0.getContextByMediator(MilitaryExerciseMediator)
+
+		if var_15_8:
+			local var_15_9 = var_15_8.getContextByMediator(ExercisePreCombatMediator)
+
+			if var_15_9:
+				var_15_8.removeChild(var_15_9)
+
+			local var_15_10 = var_15_8.getContextByMediator(BattleResultMediator)
+
+			if var_15_10:
+				var_15_8.removeChild(var_15_10)
+	elif var_15_1 == SYSTEM_HP_SHARE_ACT_BOSS:
+		local var_15_11, var_15_12 = var_15_0.getContextByMediator(ActivityBossPreCombatMediator)
+
+		if var_15_11:
+			var_15_12.removeChild(var_15_11)
+
+return var_0_0

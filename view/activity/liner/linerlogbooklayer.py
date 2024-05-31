@@ -1,0 +1,118 @@
+local var_0_0 = class("LinerLogBookLayer", import("view.base.BaseUI"))
+
+var_0_0.PAGE_SCHEDULE = 1
+var_0_0.PAGE_ROOM = 2
+var_0_0.PAGE_EVENT = 3
+
+local var_0_1 = {
+	"liner_log_schedule_title",
+	"liner_log_room_title",
+	"liner_log_event_title"
+}
+local var_0_2 = var_0_0.PAGE_SCHEDULE
+
+def var_0_0.getUIName(arg_1_0):
+	return "LinerLogBookUI"
+
+def var_0_0.init(arg_2_0):
+	arg_2_0.anim = arg_2_0._tf.GetComponent(typeof(Animation))
+	arg_2_0.animEvent = arg_2_0._tf.GetComponent(typeof(DftAniEvent))
+
+	arg_2_0.animEvent.SetEndEvent(function()
+		arg_2_0.emit(var_0_0.ON_CLOSE))
+
+	arg_2_0.togglesTF = arg_2_0.findTF("frame/toggles")
+
+	local var_2_0 = arg_2_0.findTF("frame/pages")
+
+	arg_2_0.schedulePage = LinerLogSchedulePage.New(var_2_0, arg_2_0)
+	arg_2_0.roomPage = LinerLogRoomPage.New(var_2_0, arg_2_0)
+	arg_2_0.eventPage = LinerLogEventPage.New(var_2_0, arg_2_0)
+	arg_2_0.pages = {
+		[var_0_0.PAGE_SCHEDULE] = arg_2_0.schedulePage,
+		[var_0_0.PAGE_ROOM] = arg_2_0.roomPage,
+		[var_0_0.PAGE_EVENT] = arg_2_0.eventPage
+	}
+	arg_2_0.reasoningPage = LinerReasoningPage.New(arg_2_0.findTF("pages"), arg_2_0)
+
+def var_0_0.didEnter(arg_4_0):
+	onButton(arg_4_0, arg_4_0.findTF("frame/close"), function()
+		arg_4_0.onBackPressed(), SFX_PANEL)
+	onButton(arg_4_0, arg_4_0.findTF("mask"), function()
+		arg_4_0.onBackPressed(), SFX_PANEL)
+	eachChild(arg_4_0.togglesTF, function(arg_7_0)
+		setText(arg_4_0.findTF("Text", arg_7_0), i18n(var_0_1[tonumber(arg_7_0.name)]))
+		onButton(arg_4_0, arg_7_0, function()
+			local var_8_0 = tonumber(arg_7_0.name)
+
+			if var_8_0 == var_0_0.PAGE_EVENT and not LinerLogEventPage.IsUnlcok():
+				pg.TipsMgr.GetInstance().ShowTips(i18n("liner_event_lock"))
+			else
+				if arg_4_0.curPageIdx and arg_4_0.curPageIdx == var_8_0:
+					return
+
+				arg_4_0.curPageIdx = var_8_0
+
+				arg_4_0.SwitchPage()
+				arg_7_0.SetAsLastSibling()
+				arg_4_0.UpdateToggles()))
+
+	local var_4_0 = arg_4_0.contextData.page or var_0_2
+
+	triggerButton(arg_4_0.findTF(tostring(var_4_0), arg_4_0.togglesTF), True)
+	arg_4_0.UpdateTips()
+
+def var_0_0.UpdateToggles(arg_9_0):
+	setActive(arg_9_0.findTF("3/lock", arg_9_0.togglesTF), not LinerLogEventPage.IsUnlcok())
+	eachChild(arg_9_0.togglesTF, function(arg_10_0)
+		setActive(arg_9_0.findTF("selected", arg_10_0), tonumber(arg_10_0.name) == arg_9_0.curPageIdx))
+
+def var_0_0.SwitchPage(arg_11_0):
+	for iter_11_0, iter_11_1 in pairs(arg_11_0.pages):
+		if iter_11_0 == arg_11_0.curPageIdx:
+			iter_11_1.ExecuteAction("FlushPage")
+
+			arg_11_0.curPage = iter_11_1
+		else
+			iter_11_1.ExecuteAction("Hide")
+
+def var_0_0.UpdateView(arg_12_0):
+	for iter_12_0, iter_12_1 in pairs(arg_12_0.pages):
+		iter_12_1.ExecuteAction("UpdateActivity")
+
+	arg_12_0.curPage.ExecuteAction("FlushPage")
+	arg_12_0.UpdateTips()
+
+def var_0_0.UpdateTips(arg_13_0):
+	eachChild(arg_13_0.togglesTF, function(arg_14_0)
+		local var_14_0 = tonumber(arg_14_0.name)
+
+		setActive(arg_13_0.findTF("tip", arg_14_0), arg_13_0.pages[var_14_0].IsTip()))
+
+def var_0_0.OnStartReasoning(arg_15_0, arg_15_1, arg_15_2):
+	arg_15_0.reasoningPage.ExecuteAction("ShowOptions", arg_15_1, arg_15_2)
+
+def var_0_0.onBackPressed(arg_16_0):
+	arg_16_0.anim.Play("anim_liner_logbook_out")
+
+def var_0_0.willExit(arg_17_0):
+	arg_17_0.animEvent.SetEndEvent(None)
+
+	for iter_17_0, iter_17_1 in pairs(arg_17_0.pages):
+		iter_17_1.Destroy()
+
+		iter_17_1 = None
+
+	arg_17_0.reasoningPage.Destroy()
+
+	arg_17_0.reasoningPage = None
+
+	if arg_17_0.contextData.onExit:
+		arg_17_0.contextData.onExit()
+
+		arg_17_0.contextData.onExit = None
+
+def var_0_0.IsTip():
+	return LinerLogSchedulePage.IsTip() or LinerLogRoomPage.IsTip() or LinerLogEventPage.IsTip()
+
+return var_0_0

@@ -1,0 +1,128 @@
+local var_0_0 = class("ChangePlayerNameCommand", pm.SimpleCommand)
+
+def var_0_0.execute(arg_1_0, arg_1_1):
+	local var_1_0 = arg_1_1.getBody()
+	local var_1_1 = var_1_0.name
+	local var_1_2 = var_1_0.type or 1
+	local var_1_3 = var_1_0.onSuccess
+
+	if not var_1_1 or var_1_1 == "":
+		return
+
+	local var_1_4 = getProxy(PlayerProxy).getData()
+
+	if not var_1_4:
+		return
+
+	if var_1_1 == var_1_4.name:
+		pg.TipsMgr.GetInstance().ShowTips(i18n("same_player_name_tip"))
+
+		return
+
+	if not nameValidityCheck(var_1_1, 4, 14, {
+		"spece_illegal_tip",
+		"login_newPlayerScene_name_tooShort",
+		"login_newPlayerScene_name_tooLong",
+		"login_newPlayerScene_invalideName"
+	}):
+		return
+
+	if var_1_2 == 1:
+		arg_1_0.ModifyNameByItem(var_1_4, var_1_1, var_1_3)
+	elif var_1_2 == 2:
+		arg_1_0.ForceModifyName(var_1_4, var_1_1, var_1_3)
+
+def var_0_0.ModifyNameByItem(arg_2_0, arg_2_1, arg_2_2, arg_2_3):
+	local var_2_0, var_2_1 = arg_2_1.canModifyName()
+
+	if not var_2_0:
+		pg.TipsMgr.GetInstance().ShowTips(var_2_1)
+
+		return
+
+	local var_2_2 = getProxy(PlayerProxy)
+	local var_2_3 = arg_2_1.getModifyNameComsume()
+	local var_2_4 = getProxy(BagProxy)
+	local var_2_5
+
+	if var_2_3[1] == DROP_TYPE_RESOURCE:
+		if arg_2_1.getResById(var_2_3[2]) < var_2_3[3]:
+			pg.TipsMgr.GetInstance().ShowTips(i18n("common_no_resource"))
+
+			return
+
+		var_2_5 = Drop.New({
+			type = DROP_TYPE_ITEM,
+			id = id2ItemId(var_2_3[2]),
+			count = var_2_3[3]
+		})
+	elif var_2_3[1] == DROP_TYPE_ITEM:
+		local var_2_6 = var_2_4.getItemById(var_2_3[2])
+
+		if not var_2_6 or var_2_6.count < var_2_3[3]:
+			pg.TipsMgr.GetInstance().ShowTips(i18n("common_no_item_1"))
+
+			return
+
+		var_2_5 = Drop.New({
+			type = DROP_TYPE_ITEM,
+			id = var_2_3[2],
+			count = var_2_3[3]
+		})
+	else
+		assert(False, "type is not supported >> " .. var_2_3[1])
+
+		return
+
+	local var_2_7 = pg.gameset.player_name_cold_time.key_value
+
+	local function var_2_8()
+		pg.ConnectionMgr.GetInstance().Send(11007, {
+			type = 1,
+			name = arg_2_2
+		}, 11008, function(arg_4_0)
+			if arg_4_0.result == 0:
+				arg_2_1.name = arg_2_2
+
+				local var_4_0 = pg.TimeMgr.GetInstance().GetServerTime() + var_2_7
+
+				arg_2_1.updateModifyNameColdTime(var_4_0)
+				var_2_2.updatePlayer(arg_2_1)
+				arg_2_0.sendNotification(GAME.CONSUME_ITEM, Drop.Create(var_2_3))
+
+				if arg_2_3:
+					arg_2_3()
+
+				arg_2_0.sendNotification(GAME.CHANGE_PLAYER_NAME_DONE)
+				pg.TipsMgr.GetInstance().ShowTips(i18n("player_changePlayerName_ok"))
+			else
+				pg.TipsMgr.GetInstance().ShowTips(errorTip("player_changePlayerName", arg_4_0.result)))
+
+	pg.MsgboxMgr.GetInstance().ShowMsgBox({
+		content = i18n("player_name_change_warning", var_2_5.count, var_2_5.getConfig("name"), arg_2_2),
+		def onYes:()
+			var_2_8()
+	})
+
+def var_0_0.ForceModifyName(arg_6_0, arg_6_1, arg_6_2, arg_6_3):
+	local var_6_0 = getProxy(PlayerProxy)
+
+	pg.ConnectionMgr.GetInstance().Send(11007, {
+		type = 2,
+		name = arg_6_2
+	}, 11008, function(arg_7_0)
+		if arg_7_0.result == 0:
+			arg_6_1.name = arg_6_2
+
+			arg_6_1.CancelCommonFlag(ILLEGALITY_PLAYER_NAME)
+			var_6_0.updatePlayer(arg_6_1)
+
+			if arg_6_3:
+				arg_6_3()
+
+			arg_6_0.sendNotification(GAME.CHANGE_PLAYER_NAME_DONE)
+			pg.TipsMgr.GetInstance().ShowTips(i18n("player_changePlayerName_ok"))
+		else
+			pg.TipsMgr.GetInstance().ShowTips(errorTip("player_changePlayerName", arg_7_0.result)))
+
+return var_0_0

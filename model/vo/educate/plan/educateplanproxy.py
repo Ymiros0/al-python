@@ -1,0 +1,198 @@
+local var_0_0 = class("EducatePlanProxy")
+
+var_0_0.INDEX2BG = {
+	{
+		"empty_blue",
+		"plan_name_blue"
+	},
+	{
+		"empty_green",
+		"plan_name_green"
+	},
+	{
+		"empty_red",
+		"plan_name_red"
+	}
+}
+
+def var_0_0.Ctor(arg_1_0):
+	arg_1_0.allPlans = {}
+
+	local var_1_0 = pg.child_plan.all
+
+	for iter_1_0, iter_1_1 in ipairs(var_1_0):
+		table.insert(arg_1_0.allPlans, EducatePlan.New(iter_1_1))
+
+	arg_1_0.gridColorCfg = pg.child_data[1].plan_color
+
+def var_0_0.GetCfgPlans(arg_2_0):
+	return arg_2_0.allPlans
+
+def var_0_0.SetUp(arg_3_0, arg_3_1):
+	arg_3_0.initHistory(arg_3_1.history or {})
+
+	arg_3_0.selectedPlans = arg_3_1.selectedPlans or {}
+
+	if #arg_3_0.selectedPlans > 0:
+		arg_3_0.initGridData()
+	else
+		arg_3_0.gridData = {}
+
+	arg_3_0.playerId = getProxy(PlayerProxy).getRawData().id
+
+def var_0_0.GetGridBgName(arg_4_0, arg_4_1, arg_4_2):
+	local var_4_0 = 1
+
+	underscore.each(arg_4_0.gridColorCfg, function(arg_5_0)
+		underscore.each(arg_5_0[1], function(arg_6_0)
+			if arg_6_0[1] == arg_4_1 and arg_6_0[2] == arg_4_2:
+				var_4_0 = arg_5_0[2]
+
+				return))
+
+	return var_0_0.INDEX2BG[var_4_0]
+
+def var_0_0.initHistory(arg_7_0, arg_7_1):
+	arg_7_0.history = {}
+
+	for iter_7_0, iter_7_1 in ipairs(arg_7_1):
+		arg_7_0.history[iter_7_1.plan_id] = iter_7_1.count
+
+def var_0_0.UpdateHistory(arg_8_0, arg_8_1):
+	for iter_8_0, iter_8_1 in pairs(arg_8_0.gridData):
+		for iter_8_2, iter_8_3 in pairs(iter_8_1):
+			if iter_8_3.IsPlan():
+				if not arg_8_0.history[iter_8_3.id]:
+					arg_8_0.history[iter_8_3.id] = 0
+
+				arg_8_0.history[iter_8_3.id] = arg_8_0.history[iter_8_3.id] + 1
+
+def var_0_0.GetHistoryCntById(arg_9_0, arg_9_1):
+	return arg_9_0.history[arg_9_1] or 0
+
+def var_0_0.initGridData(arg_10_0):
+	arg_10_0.gridData = {}
+
+	for iter_10_0, iter_10_1 in ipairs(arg_10_0.selectedPlans):
+		if not arg_10_0.gridData[iter_10_1.day]:
+			arg_10_0.gridData[iter_10_1.day] = {}
+
+		if iter_10_1.value[1]:
+			local var_10_0 = iter_10_1.value[1].spec_event_id
+			local var_10_1 = iter_10_1.value[1].plan_id
+
+			if var_10_0 and var_10_0 != 0:
+				getProxy(EducateProxy).GetEventProxy().AddFinishSpecEvent(var_10_0)
+
+				arg_10_0.gridData[iter_10_1.day][iter_10_1.index] = EducateGrid.New({
+					id = var_10_0,
+					type = EducateGrid.TYPE_EVENT
+				})
+			elif var_10_1 and var_10_1 != 0:
+				arg_10_0.gridData[iter_10_1.day][iter_10_1.index] = EducateGrid.New({
+					id = var_10_1,
+					type = EducateGrid.TYPE_PLAN
+				})
+
+def var_0_0.SetGridData(arg_11_0, arg_11_1):
+	arg_11_0.selectedPlans = arg_11_1
+
+	arg_11_0.initGridData()
+
+def var_0_0.GetGridData(arg_12_0):
+	return arg_12_0.gridData
+
+def var_0_0.GetCost(arg_13_0):
+	local var_13_0 = 0
+	local var_13_1 = 0
+
+	for iter_13_0, iter_13_1 in pairs(arg_13_0.gridData):
+		for iter_13_2, iter_13_3 in pairs(iter_13_1):
+			if iter_13_3.IsPlan():
+				local var_13_2, var_13_3 = iter_13_3.data.GetCost()
+
+				var_13_0 = var_13_0 + var_13_2
+				var_13_1 = var_13_1 + var_13_3
+
+	return var_13_0, var_13_1
+
+def var_0_0.CheckExcute(arg_14_0):
+	return #arg_14_0.selectedPlans > 0
+
+def var_0_0.GetShowPlans(arg_15_0, arg_15_1, arg_15_2, arg_15_3):
+	return underscore.select(arg_15_0.allPlans, function(arg_16_0)
+		local var_16_0 = arg_16_0.getConfig("pre")[1]
+
+		return arg_16_0.IsShow(arg_15_1, arg_15_2, arg_15_3) and arg_16_0.IsMatchPre(arg_15_0.GetHistoryCntById(var_16_0)))
+
+def var_0_0.ClearLocalPlansData(arg_17_0):
+	local var_17_0 = getProxy(EducateProxy).GetCharData().GetNextWeekPlanCnt()
+
+	for iter_17_0 = 1, 6:
+		for iter_17_1 = 1, 3:
+			local var_17_1 = iter_17_1 <= var_17_0 and EducateGrid.TYPE_EMPTY or EducateGrid.TYPE_LOCK
+			local var_17_2 = 0 .. "_" .. var_17_1
+
+			PlayerPrefs.SetString(EducateConst.PLANS_DATA_KEY .. arg_17_0.playerId .. "_" .. iter_17_0 .. "_" .. iter_17_1, var_17_2)
+
+def var_0_0.GetRecommendPlan(arg_18_0, arg_18_1, arg_18_2, arg_18_3, arg_18_4, arg_18_5, arg_18_6, arg_18_7):
+	local var_18_0 = arg_18_0.GetShowPlans(arg_18_3.GetNextWeekStage(), arg_18_1, arg_18_2)
+	local var_18_1 = arg_18_3.money - arg_18_4
+	local var_18_2 = arg_18_3.mood - arg_18_5
+
+	for iter_18_0, iter_18_1 in ipairs(arg_18_7):
+		table.sort(var_18_0, CompareFuncs({
+			function(arg_19_0)
+				return -arg_19_0.GetAttrResultValue(iter_18_1),
+			function(arg_20_0)
+				return arg_20_0.id
+		}))
+
+		for iter_18_2, iter_18_3 in ipairs(var_18_0):
+			local var_18_3, var_18_4, var_18_5 = iter_18_3.GetCost()
+
+			if var_18_3 <= var_18_1 and var_18_4 <= var_18_2 and var_18_5 <= arg_18_6 and iter_18_3.IsMatchAttr(arg_18_3) and iter_18_3.IsMatchPre(arg_18_0.GetHistoryCntById(iter_18_3.id)):
+				return iter_18_3
+
+	return None
+
+def var_0_0.OnExecutePlanDone(arg_21_0):
+	arg_21_0.selectedPlans = {}
+
+def var_0_0.OnNewWeek(arg_22_0):
+	return
+
+def var_0_0.GridData2ProtData(arg_23_0):
+	local var_23_0 = {}
+
+	for iter_23_0, iter_23_1 in pairs(arg_23_0):
+		for iter_23_2, iter_23_3 in pairs(iter_23_1):
+			if iter_23_3.IsPlan():
+				table.insert(var_23_0, {
+					day = iter_23_0,
+					index = iter_23_2,
+					value = {
+						{
+							event_id = 0,
+							spec_event_id = 0,
+							plan_id = iter_23_3.id
+						}
+					}
+				})
+
+			if iter_23_3.IsEvent():
+				table.insert(var_23_0, {
+					day = iter_23_0,
+					index = iter_23_2,
+					value = {
+						{
+							event_id = 0,
+							plan_id = 0,
+							spec_event_id = iter_23_3.id
+						}
+					}
+				})
+
+	return var_23_0
+
+return var_0_0

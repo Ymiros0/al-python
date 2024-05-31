@@ -1,0 +1,111 @@
+local var_0_0 = class("IslandNode", import(".BaseVO"))
+
+def var_0_0.bindConfigTable(arg_1_0):
+	return pg.activity_map_event_list
+
+def var_0_0.Ctor(arg_2_0, arg_2_1):
+	arg_2_0.id = arg_2_1.id
+	arg_2_0.configId = arg_2_1.id
+	arg_2_0.eventId = arg_2_1.event_id
+	arg_2_0.isNew = arg_2_1.is_new == 1
+
+def var_0_0.IsUnlock(arg_3_0):
+	arg_3_0.isUnlock = arg_3_0.isUnlock or arg_3_0.GetUnlock()
+
+	return arg_3_0.isUnlock
+
+def var_0_0.GetUnlock(arg_4_0):
+	local var_4_0 = getProxy(IslandProxy)
+	local var_4_1 = arg_4_0.getConfig("open_need")
+	local var_4_2 = getProxy(ActivityProxy).getActivityByType(ActivityConst.ACTIVITY_TYPE_BUILDING_BUFF_2)
+	local var_4_3 = var_4_2 and var_4_2.GetTotalBuildingLevel() or 0
+	local var_4_4 = {}
+
+	for iter_4_0, iter_4_1 in ipairs(getProxy(ActivityTaskProxy).getFinishTasks()):
+		var_4_4[iter_4_1.GetConfigID()] = True
+
+	return var_4_3 >= var_4_1[1] and underscore.all(var_4_1[2], function(arg_5_0)
+		return var_4_0.GetNode(arg_5_0).IsCompleted()) and underscore.all(arg_4_0.getConfig("open_task"), function(arg_6_0)
+		return var_4_4[arg_6_0])
+
+def var_0_0.IsVisual(arg_7_0):
+	return (arg_7_0.getConfig("node_status") == 1 or not arg_7_0.IsCompleted()) and arg_7_0.IsUnlock() and not arg_7_0.ChangeVisual()
+
+def var_0_0.ChangeVisual(arg_8_0):
+	local var_8_0 = arg_8_0.getConfig("node_change")
+
+	return var_8_0 != 0 and getProxy(IslandProxy).GetNode(var_8_0).IsUnlock()
+
+def var_0_0.IsCompleted(arg_9_0):
+	return arg_9_0.eventId == 0
+
+def var_0_0.IsNew(arg_10_0):
+	return not arg_10_0.IsTreasure() and arg_10_0.isNew
+
+def var_0_0.IsMain(arg_11_0):
+	return arg_11_0.getConfig("type") == 1
+
+def var_0_0.IsTreasure(arg_12_0):
+	return arg_12_0.getConfig("type") == 4
+
+def var_0_0.IsRefresh(arg_13_0):
+	return arg_13_0.getConfig("refresh") == 1
+
+def var_0_0.IsFlowerField(arg_14_0):
+	return arg_14_0.getConfig("type") == 5 and arg_14_0.getConfig("params")[1] == "flowerfield"
+
+def var_0_0.GetScale(arg_15_0):
+	return 0.8
+
+def var_0_0.RedDotHint(arg_16_0):
+	return switch(arg_16_0.getConfig("type"), {
+		[4] = function()
+			return False,
+		[5] = function()
+			var_0_0.markDic = var_0_0.markDic or {
+				def minigame1:(...)
+					local var_19_0 = getProxy(ActivityProxy).getActivityById(ActivityConst.ISLAND_GAME_ID).getConfig("config_id")
+
+					return getProxy(MiniGameProxy).GetHubByHubId(var_19_0).count > 0,
+				def minigame2:(...)
+					return var_0_0.markDic.minigame1(...),
+				def minigame3:(...)
+					return var_0_0.markDic.minigame1(...),
+				def flowerfield:()
+					local var_22_0 = getProxy(ActivityProxy).getActivityByType(ActivityConst.ACTIVITY_TYPE_FLOWER_FIELD)
+
+					return Activity.IsActivityReady(var_22_0),
+				def hotspringtask:()
+					local var_23_0 = getProxy(ActivityProxy).getActivityByType(ActivityConst.ACTIVITY_TYPE_HOTSPRING_2)
+
+					return Activity.IsActivityReady(var_23_0)
+			}
+
+			return switch(arg_16_0.getConfig("params")[1], var_0_0.markDic, function()
+				return False)
+	}, function()
+		return not arg_16_0.IsCompleted())
+
+def var_0_0.GetEffectName(arg_26_0):
+	return switch(arg_26_0.getConfig("type"), {
+		[4] = function()
+			return "haidao_baoxiang"
+	}, function()
+		return "")
+
+def var_0_0.CanTrigger(arg_29_0):
+	if arg_29_0.getConfig("type") == 5:
+		return True
+	else
+		return not arg_29_0.IsCompleted()
+
+def var_0_0.CanToggleOn(arg_30_0):
+	return switch(arg_30_0.getConfig("type"), {
+		[4] = function()
+			return False,
+		[5] = function()
+			return True
+	}, function()
+		return not arg_30_0.IsCompleted())
+
+return var_0_0

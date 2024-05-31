@@ -1,0 +1,53 @@
+local var_0_0 = class("ChargeBirthdayLayer", import("...base.BaseUI"))
+
+def var_0_0.getUIName(arg_1_0):
+	return "ChargeBirthdayUI"
+
+def var_0_0.init(arg_2_0):
+	arg_2_0.initData()
+	arg_2_0.findUI()
+	arg_2_0.addListener()
+	arg_2_0.initUIText()
+
+def var_0_0.didEnter(arg_3_0):
+	pg.UIMgr.GetInstance().BlurPanel(arg_3_0._tf)
+
+def var_0_0.willExit(arg_4_0):
+	pg.UIMgr.GetInstance().UnblurPanel(arg_4_0._tf)
+
+def var_0_0.initData(arg_5_0):
+	return
+
+def var_0_0.initUIText(arg_6_0):
+	arg_6_0.inputSC.text = ""
+
+def var_0_0.findUI(arg_7_0):
+	arg_7_0.bg = arg_7_0.findTF("bg")
+	arg_7_0.window = arg_7_0.findTF("window")
+	arg_7_0.inputField = arg_7_0.findTF("birthday_input_panel/InputField", arg_7_0.window)
+	arg_7_0.inputSC = GetComponent(arg_7_0.inputField, typeof(InputField))
+	arg_7_0.cancelBtn = arg_7_0.findTF("birthday_input_panel/btns/cancel_btn", arg_7_0.window)
+	arg_7_0.confirmBtn = arg_7_0.findTF("birthday_input_panel/btns/confirm_btn", arg_7_0.window)
+	arg_7_0.closeBtn = arg_7_0.findTF("top/btnBack", arg_7_0.window)
+
+def var_0_0.addListener(arg_8_0):
+	onButton(arg_8_0, arg_8_0.bg, function()
+		arg_8_0.closeView())
+	onButton(arg_8_0, arg_8_0.cancelBtn, function()
+		arg_8_0.closeView())
+	onButton(arg_8_0, arg_8_0.closeBtn, function()
+		arg_8_0.closeView())
+	onButton(arg_8_0, arg_8_0.confirmBtn, function()
+		if not checkBirthFormat(arg_8_0.inputSC.text):
+			pg.TipsMgr.GetInstance().ShowTips(i18n("set_birth_empty_tip"))
+		else
+			pg.MsgboxMgr.GetInstance().ShowMsgBox({
+				modal = True,
+				title = i18n("set_birth_title"),
+				content = i18n("set_birth_confirm_tip", arg_8_0.inputSC.text),
+				def onYes:()
+					pg.SdkMgr.GetInstance().SetBirth(arg_8_0.inputSC.text)
+					arg_8_0.closeView()
+			}))
+
+return var_0_0

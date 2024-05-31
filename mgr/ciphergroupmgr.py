@@ -1,0 +1,241 @@
+pg = pg or {}
+pg.CipherGroupMgr = singletonClass("CipherGroupMgr")
+
+local var_0_0 = pg.CipherGroupMgr
+
+var_0_0.GroupName = "CIPHER"
+
+def var_0_0.Ctor(arg_1_0):
+	arg_1_0.group = GroupHelper.GetGroupMgrByName(var_0_0.GroupName)
+	arg_1_0.downloadList = {}
+	arg_1_0.finishCount = 0
+	arg_1_0.curIndex = 0
+
+def var_0_0.GetCurFilePath(arg_2_0):
+	return arg_2_0.downloadList[arg_2_0.curIndex]
+
+def var_0_0.GetCurFileState(arg_3_0):
+	local var_3_0 = arg_3_0.GetCurFilePath()
+
+	return arg_3_0.group.CheckF(var_3_0)
+
+def var_0_0.GetValidFileList(arg_4_0, arg_4_1):
+	local var_4_0 = {}
+
+	if GroupHelper.IsGroupWaitToUpdate(var_0_0.GroupName):
+		for iter_4_0, iter_4_1 in ipairs(arg_4_1):
+			iter_4_1 = string.lower(iter_4_1)
+
+			local var_4_1 = GroupHelper.VerifyFile(var_0_0.GroupName, iter_4_1)
+
+			warning(iter_4_1 .. " " .. tostring(var_4_1))
+
+			if var_4_1:
+				table.insert(var_4_0, iter_4_1)
+
+	return var_4_0
+
+def var_0_0.StartWithFileList(arg_5_0, arg_5_1):
+	local var_5_0 = arg_5_0.GetValidFileList(arg_5_1)
+
+	if #var_5_0 > 0:
+		arg_5_0.Clear()
+
+		arg_5_0.downloadList = var_5_0
+		arg_5_0.curIndex = 1
+
+		arg_5_0.updateWithIndex(1)
+		arg_5_0.createUpdateTimer()
+
+def var_0_0.AddFileList(arg_6_0, arg_6_1):
+	local var_6_0 = arg_6_0.GetValidFileList(arg_6_1)
+
+	if #var_6_0 > 0:
+		for iter_6_0, iter_6_1 in ipairs(var_6_0):
+			table.insert(arg_6_0.downloadList, iter_6_1)
+
+def var_0_0.SetCallBack(arg_7_0, arg_7_1):
+	arg_7_0.progressCB = arg_7_1.progressCB
+	arg_7_0.allFinishCB = arg_7_1.allFinishCB
+	arg_7_0.singleFinshCB = arg_7_1.singleFinshCB
+	arg_7_0.errorCB = arg_7_1.errorCB
+
+def var_0_0.IsAnyFileInProgress(arg_8_0):
+	return arg_8_0.curIndex > 0 and arg_8_0.curIndex <= #arg_8_0.downloadList
+
+def var_0_0.DelFile(arg_9_0, arg_9_1):
+	local var_9_0 = #arg_9_1
+	local var_9_1 = System.Array.CreateInstance(typeof(System.String), var_9_0)
+
+	for iter_9_0 = 0, var_9_0 - 1:
+		var_9_1[iter_9_0] = arg_9_1[iter_9_0 + 1]
+
+	arg_9_0.group.DelFile(var_9_1)
+
+def var_0_0.DelFile_Old(arg_10_0, arg_10_1):
+	for iter_10_0, iter_10_1 in ipairs(arg_10_1):
+		local var_10_0 = PathMgr.getAssetBundle(iter_10_1)
+
+		warning("full file path." .. var_10_0)
+
+		if PathMgr.FileExists(var_10_0):
+			System.IO.File.Delete(var_10_0)
+			warning("del file path." .. var_10_0)
+
+	arg_10_0.group.ClearStreamWriter()
+
+	local function var_10_1(arg_11_0)
+		local var_11_0 = False
+
+		for iter_11_0, iter_11_1 in ipairs(arg_10_1):
+			if string.sub(arg_11_0, 1, #iter_11_1) == iter_11_1:
+				var_11_0 = True
+
+				break
+
+		return var_11_0
+
+	local var_10_2 = {}
+	local var_10_3 = arg_10_0.group.cachedHashPath
+
+	warning("hash path." .. var_10_3)
+
+	if PathMgr.FileExists(var_10_3):
+		local var_10_4 = PathMgr.ReadAllLines(var_10_3)
+		local var_10_5 = var_10_4.Length
+		local var_10_6 = {}
+
+		for iter_10_2 = 0, var_10_5 - 1:
+			local var_10_7 = var_10_4[iter_10_2]
+
+			if not var_10_1(var_10_7):
+				warning("add origin hash." .. var_10_7)
+				table.insert(var_10_6, var_10_7)
+			else
+				warning("find del hash." .. var_10_7)
+
+				local var_10_8 = var_10_7
+				local var_10_9 = System.Array.CreateInstance(typeof(System.String), 3)
+				local var_10_10 = string.split(var_10_8, ",")
+
+				for iter_10_3 = 0, 2:
+					local var_10_11 = var_10_10[iter_10_3 + 1]
+
+					warning("add info." .. var_10_11)
+
+					var_10_9[iter_10_3] = var_10_11
+
+				table.insert(var_10_2, var_10_9)
+
+		local var_10_12 = #var_10_6
+
+		warning("new hash count." .. var_10_12)
+
+		if var_10_12 < var_10_5:
+			if GroupHelper.IsGroupVerLastest(var_0_0.GroupName):
+				local var_10_13 = Application.persistentDataPath .. "/" .. arg_10_0.group.localVersionFile
+
+				System.IO.File.WriteAllText(var_10_13, "0.0.1")
+				warning("ver write." .. var_10_13)
+
+			local var_10_14 = System.Array.CreateInstance(typeof(System.String), var_10_12)
+
+			for iter_10_4, iter_10_5 in ipairs(var_10_6):
+				var_10_14[iter_10_4 - 1] = iter_10_5
+
+			System.IO.File.WriteAllLines(var_10_3, var_10_14)
+			warning("hash write." .. var_10_3)
+
+	if arg_10_0.group.toUpdate:
+		for iter_10_6, iter_10_7 in ipairs(var_10_2):
+			local var_10_15 = iter_10_7[0]
+
+			warning("re add info." .. var_10_15)
+			arg_10_0.group.toUpdate.Add(iter_10_7)
+			arg_10_0.group.UpdateFileDownloadStates(var_10_15, DownloadState.CheckToUpdate)
+
+		if arg_10_0.group.state == DownloadState.UpdateSuccess:
+			arg_10_0.group.state = DownloadState.CheckToUpdate
+	else
+		arg_10_0.group.state = DownloadState.None
+
+		arg_10_0.group.CheckD()
+
+def var_0_0.Clear(arg_12_0):
+	arg_12_0.clearTimer()
+
+	arg_12_0.downloadList = {}
+	arg_12_0.finishCount = 0
+	arg_12_0.curIndex = 0
+
+def var_0_0.isCipherExist(arg_13_0, arg_13_1):
+	local var_13_0 = arg_13_0.group.CheckF(arg_13_1)
+	local var_13_1 = var_13_0 == DownloadState.None or var_13_0 == DownloadState.UpdateSuccess
+	local var_13_2 = PathMgr.getAssetBundle(arg_13_1)
+	local var_13_3 = PathMgr.FileExists(var_13_2)
+
+	return var_13_1 and var_13_3
+
+def var_0_0.Repair(arg_14_0):
+	local var_14_0 = {
+		text = i18n("msgbox_repair"),
+		def onCallback:()
+			if PathMgr.FileExists(Application.persistentDataPath .. "/hashes-cipher.csv"):
+				arg_14_0.group.StartVerifyForLua()
+			else
+				pg.TipsMgr.GetInstance().ShowTips(i18n("word_no_cache"))
+	}
+
+	pg.MsgboxMgr.GetInstance().ShowMsgBox({
+		hideYes = True,
+		content = i18n("resource_verify_warn"),
+		custom = {
+			var_14_0
+		}
+	})
+
+def var_0_0.clearTimer(arg_16_0):
+	if arg_16_0.frameTimer:
+		arg_16_0.frameTimer.Stop()
+
+		arg_16_0.frameTimer = None
+
+def var_0_0.updateWithIndex(arg_17_0, arg_17_1):
+	if arg_17_1 > #arg_17_0.downloadList:
+		if arg_17_0.allFinishCB:
+			arg_17_0.allFinishCB()
+
+		arg_17_0.Clear()
+
+		return
+
+	local var_17_0 = arg_17_0.GetCurFilePath()
+
+	arg_17_0.group.UpdateF(var_17_0)
+
+def var_0_0.onUpdateD(arg_18_0):
+	local var_18_0 = arg_18_0.GetCurFilePath()
+	local var_18_1 = arg_18_0.group.CheckF(var_18_0)
+
+	if var_18_1 == DownloadState.UpdateSuccess:
+		arg_18_0.finishCount = arg_18_0.finishCount + 1
+
+		if arg_18_0.singleFinshCB:
+			arg_18_0.singleFinshCB(var_18_0, arg_18_0.finishCount, #arg_18_0.downloadList)
+
+		arg_18_0.curIndex = arg_18_0.curIndex + 1
+
+		arg_18_0.updateWithIndex(arg_18_0.curIndex)
+	elif var_18_1 == DownloadState.UpdateFailure:
+		if arg_18_0.errorCB:
+			arg_18_0.errorCB(var_18_0)
+
+		arg_18_0.clearTimer()
+	elif var_18_1 == DownloadState.Updating and arg_18_0.progressCB:
+		arg_18_0.progressCB(var_18_0, arg_18_0.group.GetWebReqProgress())
+
+def var_0_0.createUpdateTimer(arg_19_0):
+	arg_19_0.frameTimer = FrameTimer.New(function()
+		arg_19_0.onUpdateD(), 1, -1)
+
+	arg_19_0.frameTimer.Start()

@@ -1,0 +1,132 @@
+local var_0_0 = class("CourtYardCanPutFurniture", import(".CourtYardFurniture"))
+
+def var_0_0.Ctor(arg_1_0, arg_1_1, arg_1_2):
+	var_0_0.super.Ctor(arg_1_0, arg_1_1, arg_1_2)
+
+	arg_1_0.childs = {}
+	arg_1_0.placeableArea = CourtYardFurniturePlaceableArea.New(arg_1_1, arg_1_0, Vector4(35, 35, 0, 0))
+
+def var_0_0.GetPlaceableArea(arg_2_0):
+	return arg_2_0.placeableArea
+
+def var_0_0.GetChilds(arg_3_0):
+	return arg_3_0.childs
+
+def var_0_0.AnyNotRotateChilds(arg_4_0):
+	if #arg_4_0.childs > 0:
+		return _.any(arg_4_0.childs, function(arg_5_0)
+			return isa(arg_5_0, CourtYardFurniture) and arg_5_0.DisableRotation())
+
+	return False
+
+def var_0_0.GetCanputonPosition(arg_6_0):
+	local var_6_0 = arg_6_0.GetPosition()
+
+	if arg_6_0.GetDirection() == 1:
+		return _.map(arg_6_0.config.canputonGrid, function(arg_7_0)
+			return Vector2(arg_7_0[1], arg_7_0[2]) + var_6_0)
+	else
+		return _.map(arg_6_0.config.canputonGrid, function(arg_8_0)
+			return Vector2(arg_8_0[2], arg_8_0[1]) + var_6_0)
+
+def var_0_0.CanPutChildInPosition(arg_9_0, arg_9_1, arg_9_2):
+	local var_9_0 = arg_9_0.GetLevel() < arg_9_1.GetLevel()
+	local var_9_1 = arg_9_0.AllowDepthType()
+	local var_9_2 = table.contains(var_9_1, arg_9_1.GetDeathType())
+	local var_9_3 = arg_9_1.GetAreaByPosition(arg_9_2)
+
+	return var_9_2 and var_9_0 and _.all(var_9_3, function(arg_10_0)
+		return arg_9_0.placeableArea.LegalPosition(arg_10_0))
+
+def var_0_0.AllowDepthType(arg_11_0):
+	return {
+		CourtYardConst.DEPTH_TYPE_MAT,
+		CourtYardConst.DEPTH_TYPE_FURNITURE
+	}
+
+def var_0_0.AddChild(arg_12_0, arg_12_1):
+	arg_12_0.SetDirty()
+	arg_12_1.SetParent(arg_12_0)
+	table.insert(arg_12_0.childs, arg_12_1)
+	arg_12_0.placeableArea.AddItem(arg_12_1)
+	arg_12_1.SetPosition(arg_12_1.GetPosition())
+
+def var_0_0.RemoveChild(arg_13_0, arg_13_1):
+	arg_13_0.SetDirty()
+	arg_13_1.SetParent(None)
+	table.removebyvalue(arg_13_0.childs, arg_13_1)
+	arg_13_0.placeableArea.RemoveItem(arg_13_1)
+
+def var_0_0.AreaWithInfo(arg_14_0, arg_14_1, arg_14_2, arg_14_3, arg_14_4):
+	return arg_14_0.placeableArea.AreaWithInfo(arg_14_1, arg_14_2, arg_14_3, arg_14_4)
+
+def var_0_0.SetPosition(arg_15_0, arg_15_1):
+	local var_15_0 = arg_15_0.GetPosition()
+
+	var_0_0.super.SetPosition(arg_15_0, arg_15_1)
+
+	local var_15_1 = {}
+
+	for iter_15_0 = #arg_15_0.childs, 1, -1:
+		local var_15_2 = arg_15_0.childs[iter_15_0]
+		local var_15_3 = var_15_2.GetPosition() - var_15_0
+
+		arg_15_0.RemoveChild(var_15_2)
+		table.insert(var_15_1, {
+			var_15_2,
+			arg_15_1 + var_15_3
+		})
+
+	for iter_15_1, iter_15_2 in ipairs(var_15_1):
+		iter_15_2[1].SetPosition(iter_15_2[2])
+		arg_15_0.AddChild(iter_15_2[1])
+
+def var_0_0.Rotate(arg_16_0):
+	local var_16_0 = arg_16_0.GetPosition()
+
+	var_0_0.super.Rotate(arg_16_0)
+
+	local var_16_1 = arg_16_0.GetPosition()
+	local var_16_2 = {}
+
+	for iter_16_0 = #arg_16_0.childs, 1, -1:
+		local var_16_3 = arg_16_0.childs[iter_16_0]
+		local var_16_4 = var_16_3.GetPosition() - var_16_0
+
+		arg_16_0.RemoveChild(var_16_3)
+		table.insert(var_16_2, {
+			var_16_3,
+			var_16_1 + Vector2(var_16_4.y, var_16_4.x)
+		})
+
+	for iter_16_1, iter_16_2 in ipairs(var_16_2):
+		iter_16_2[1].SetPosition(iter_16_2[2])
+		iter_16_2[1].Rotate()
+		arg_16_0.AddChild(iter_16_2[1])
+
+def var_0_0.CanRotateChild(arg_17_0, arg_17_1):
+	local var_17_0 = False
+
+	arg_17_0.RemoveChild(arg_17_1)
+
+	if _.all(arg_17_1.GetRotatePositions(), function(arg_18_0)
+		return arg_17_0.placeableArea.LegalPosition(arg_18_0)):
+		var_17_0 = True
+
+	arg_17_0.AddChild(arg_17_1)
+
+	return var_17_0
+
+def var_0_0.ToTable(arg_19_0):
+	local var_19_0 = var_0_0.super.ToTable(arg_19_0)
+	local var_19_1 = {}
+	local var_19_2 = arg_19_0.GetPosition()
+
+	for iter_19_0, iter_19_1 in ipairs(arg_19_0.childs):
+		var_19_1[iter_19_1.id] = iter_19_1.GetPosition() - var_19_2
+
+	var_19_0.child = var_19_1
+
+	return var_19_0
+
+return var_0_0

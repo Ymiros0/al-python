@@ -1,0 +1,38 @@
+local var_0_0 = class("EnemyScavenger", import("view.miniGame.gameView.RyzaMiniGame.character.MoveEnemy"))
+
+def var_0_0.InitUI(arg_1_0, arg_1_1):
+	var_0_0.super.InitUI(arg_1_0, arg_1_1)
+
+	arg_1_0.hp = arg_1_1.hp or 1
+	arg_1_0.hpMax = arg_1_0.hp
+	arg_1_0.speed = arg_1_1.speed or 1
+	arg_1_0.skillCD = 0
+	arg_1_0.skillTime = 0
+	arg_1_0.rate = arg_1_1.rate or 1.1
+
+def var_0_0.GetSpeedDis(arg_2_0):
+	return var_0_0.super.GetSpeedDis(arg_2_0) * (arg_2_0.skillTime > 0 and arg_2_0.rate or 1)
+
+def var_0_0.PlayMove(arg_3_0, arg_3_1):
+	if arg_3_0.skillTime > 0:
+		arg_3_0.PlayAnim("Move2_" .. arg_3_1)
+	else
+		arg_3_0.PlayAnim("Move_" .. arg_3_1)
+
+var_0_0.loopDic = {
+	Wait = True,
+	Move2 = True,
+	Move = True
+}
+
+def var_0_0.TimeTrigger(arg_4_0, arg_4_1):
+	var_0_0.super.TimeTrigger(arg_4_0, arg_4_1)
+
+	arg_4_0.skillCD = arg_4_0.skillCD - arg_4_1
+	arg_4_0.skillTime = arg_4_0.skillTime - arg_4_1
+
+	if not arg_4_0.lock and arg_4_0.skillCD <= 0 and arg_4_0.responder.SearchRyza(arg_4_0, arg_4_0.search):
+		arg_4_0.skillCD = 10
+		arg_4_0.skillTime = 5
+
+return var_0_0

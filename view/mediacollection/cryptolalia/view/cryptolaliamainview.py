@@ -1,0 +1,135 @@
+local var_0_0 = class("CryptolaliaMainView")
+
+def var_0_0.Ctor(arg_1_0, arg_1_1):
+	setmetatable(arg_1_0, {
+		def __index:(arg_2_0, arg_2_1)
+			local var_2_0 = rawget(arg_2_0, "class")
+
+			return var_2_0[arg_2_1] and var_2_0[arg_2_1] or arg_1_1[arg_2_1]
+	})
+
+	arg_1_0.downloadBtnAnim = arg_1_0.downloadBtn.GetComponent(typeof(Animation))
+
+def var_0_0.Flush(arg_3_0, arg_3_1, arg_3_2, arg_3_3):
+	if not arg_3_0.cryptolalia or arg_3_0.cryptolalia.id != arg_3_1.id:
+		arg_3_0.shipName.text = arg_3_1.GetShipName()
+		arg_3_0.nameTxt.text = arg_3_1.GetName()
+		arg_3_0.descTxt.text = arg_3_1.GetDescription()
+
+		arg_3_0.auditionTxt.SetText(arg_3_1.GetAuditionTitle())
+		arg_3_0.LoadCryptolaliaSpriteForShipGroup(arg_3_1.GetShipGroupId())
+
+		local var_3_0 = not arg_3_1.IsForever() and arg_3_1.IsLock()
+
+		setActive(arg_3_0.timeLimit, var_3_0)
+		arg_3_0.RemoveTimer()
+		arg_3_0.AddTimer(arg_3_1, var_3_0)
+
+	arg_3_0.authorTxt.text = "CV." .. arg_3_1.GetCvAuthor(arg_3_2)
+
+	arg_3_0.FlushState(arg_3_1, arg_3_2, arg_3_3)
+
+	arg_3_0.cryptolalia = arg_3_1
+
+def var_0_0.AddTimer(arg_4_0, arg_4_1, arg_4_2):
+	if arg_4_2:
+		local var_4_0 = ""
+
+		arg_4_0.timer = Timer.New(function()
+			local var_5_0 = arg_4_1.GetExpiredTimeStr()
+
+			if var_4_0 != var_5_0:
+				var_4_0 = var_5_0
+				arg_4_0.timeTxt.text = var_5_0, 1, -1)
+
+		arg_4_0.timer.Start()
+		arg_4_0.timer.func()
+	else
+		arg_4_0.timeTxt.text = ""
+
+def var_0_0.FlushState(arg_6_0, arg_6_1, arg_6_2, arg_6_3):
+	local var_6_0 = arg_6_3 and Cryptolalia.STATE_DOWNLOADING or arg_6_1.GetState(arg_6_2)
+
+	setActive(arg_6_0.lockBtn, Cryptolalia.STATE_LOCK == var_6_0)
+	setActive(arg_6_0.downloadBtn, Cryptolalia.STATE_DOWNLOADABLE == var_6_0)
+
+	if arg_6_0.state and arg_6_0.state == Cryptolalia.STATE_LOCK and var_6_0 == Cryptolalia.STATE_DOWNLOADABLE:
+		arg_6_0.downloadBtnAnim.Stop()
+		arg_6_0.downloadBtnAnim.Play("anim_Cryptolalia_dowmload")
+
+	setSlider(arg_6_0.downloadingBtn, 0, 1, 0)
+	setActive(arg_6_0.downloadingBtn, var_6_0 == Cryptolalia.STATE_DOWNLOADING)
+	setActive(arg_6_0.playBtn, Cryptolalia.STATE_PLAYABLE == var_6_0)
+	setActive(arg_6_0.deleteBtn, Cryptolalia.STATE_PLAYABLE == var_6_0)
+	setText(arg_6_0.deleteBtn.Find("label"), i18n("cryptolalia_delete_res", arg_6_1.GetResSize(arg_6_2)))
+	setActive(arg_6_0.stateBtn, Cryptolalia.STATE_PLAYABLE != var_6_0)
+	setActive(arg_6_0.switchBtn, var_6_0 != Cryptolalia.STATE_DOWNLOADING and PLATFORM_CODE == PLATFORM_CH and arg_6_1.IsMultiVersion())
+
+	local var_6_1 = Vector2(0, 0)
+	local var_6_2 = Vector2(20, -9.2)
+	local var_6_3 = arg_6_2 == Cryptolalia.LANG_TYPE_CH
+
+	setAnchoredPosition(arg_6_0.switchBtn.Find("ch"), var_6_3 and var_6_1 or var_6_2)
+	setAnchoredPosition(arg_6_0.switchBtn.Find("jp"), var_6_3 and var_6_2 or var_6_1)
+	setActive(arg_6_0.listBtn, var_6_0 != Cryptolalia.STATE_DOWNLOADING)
+
+	if Cryptolalia.STATE_LOCK == var_6_0:
+		arg_6_0.stateBtnTxt.text = i18n("cryptolalia_lock_res")
+	elif Cryptolalia.STATE_PLAYABLE != var_6_0:
+		arg_6_0.stateBtnTxt.text = i18n("cryptolalia_not_download_res")
+	else
+		arg_6_0.stateBtnTxt.text = ""
+
+	arg_6_0.state = var_6_0
+
+local function var_0_1(arg_7_0, arg_7_1, arg_7_2)
+	LoadSpriteAtlasAsync("CryptolaliaShip/" .. arg_7_1, "cd", function(arg_8_0)
+		if arg_7_0.exited:
+			return
+
+		arg_7_0.cdImg.sprite = arg_8_0
+
+		arg_7_0.cdImg.SetNativeSize()
+		arg_7_2())
+
+local function var_0_2(arg_9_0, arg_9_1, arg_9_2)
+	LoadSpriteAtlasAsync("CryptolaliaShip/" .. arg_9_1, "name", function(arg_10_0)
+		if arg_9_0.exited:
+			return
+
+		arg_9_0.cdSignatureImg.sprite = arg_10_0
+
+		arg_9_0.cdSignatureImg.SetNativeSize()
+		arg_9_2())
+
+local function var_0_3(arg_11_0, arg_11_1, arg_11_2)
+	LoadSpriteAtlasAsync("CryptolaliaShip/" .. arg_11_1, "name", function(arg_12_0)
+		if arg_11_0.exited:
+			return
+
+		arg_11_0.signatureImg.sprite = arg_12_0
+
+		arg_11_0.signatureImg.SetNativeSize()
+		arg_11_2())
+
+def var_0_0.LoadCryptolaliaSpriteForShipGroup(arg_13_0, arg_13_1):
+	arg_13_0.cg.blocksRaycasts = False
+
+	parallelAsync({
+		function(arg_14_0)
+			var_0_1(arg_13_0, arg_13_1, arg_14_0)
+	}, function()
+		arg_13_0.cg.blocksRaycasts = True)
+
+def var_0_0.RemoveTimer(arg_16_0):
+	if arg_16_0.timer:
+		arg_16_0.timer.Stop()
+
+		arg_16_0.timer = None
+
+def var_0_0.Dispose(arg_17_0):
+	arg_17_0.exited = True
+
+	arg_17_0.RemoveTimer()
+
+return var_0_0

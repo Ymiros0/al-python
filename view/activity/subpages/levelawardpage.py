@@ -1,0 +1,71 @@
+local var_0_0 = class("LevelAwardPage", import("...base.BaseActivityPage"))
+
+def var_0_0.OnInit(arg_1_0):
+	arg_1_0.bg = arg_1_0.findTF("bg")
+	arg_1_0.award = arg_1_0.findTF("scroll/award")
+	arg_1_0.content = arg_1_0.findTF("scroll/content")
+	arg_1_0.scrollTF = arg_1_0.findTF("scroll")
+	arg_1_0.pageSignDownTF = arg_1_0.findTF("sign")
+	arg_1_0.pageSignUpTF = arg_1_0.findTF("sign_up")
+
+def var_0_0.OnDataSetting(arg_2_0):
+	arg_2_0.config = pg.activity_level_award[arg_2_0.activity.getConfig("config_id")]
+
+def var_0_0.OnFirstFlush(arg_3_0):
+	setActive(arg_3_0.award, False)
+
+	for iter_3_0 = 1, #arg_3_0.config.front_drops:
+		local var_3_0 = arg_3_0.config.front_drops[iter_3_0]
+		local var_3_1 = var_3_0[1]
+		local var_3_2 = cloneTplTo(arg_3_0.award, arg_3_0.content, "award" .. tostring(iter_3_0))
+		local var_3_3 = arg_3_0.findTF("limit_label/labelLevel", var_3_2)
+		local var_3_4 = arg_3_0.findTF("btnAchieve", var_3_2)
+		local var_3_5 = arg_3_0.findTF("items", var_3_2)
+		local var_3_6 = arg_3_0.findTF("item", var_3_2)
+
+		setActive(var_3_6, False)
+		GetImageSpriteFromAtlasAsync("ui/activityuipage/level_award_atlas", tostring(var_3_1), var_3_3, True)
+
+		for iter_3_1 = 2, #var_3_0:
+			local var_3_7 = cloneTplTo(var_3_6, var_3_5)
+			local var_3_8 = var_3_0[iter_3_1]
+			local var_3_9 = {
+				type = var_3_8[1],
+				id = var_3_8[2],
+				count = var_3_8[3]
+			}
+
+			updateDrop(var_3_7, var_3_9)
+			onButton(arg_3_0, var_3_7, function()
+				arg_3_0.emit(BaseUI.ON_DROP, var_3_9), SFX_PANEL)
+
+		onButton(arg_3_0, var_3_4, function()
+			arg_3_0.emit(ActivityMediator.EVENT_OPERATION, {
+				cmd = 1,
+				activity_id = arg_3_0.activity.id,
+				arg1 = var_3_1
+			}), SFX_PANEL)
+		onScroll(arg_3_0, arg_3_0.scrollTF, function(arg_6_0)
+			setActive(arg_3_0.pageSignDownTF, arg_6_0.y > 0.01)
+			setActive(arg_3_0.pageSignUpTF, arg_6_0.y < 0.99))
+
+def var_0_0.OnUpdateFlush(arg_7_0):
+	for iter_7_0 = 1, #arg_7_0.config.front_drops:
+		local var_7_0 = arg_7_0.config.front_drops[iter_7_0]
+		local var_7_1 = arg_7_0.findTF("award" .. tostring(iter_7_0), arg_7_0.content)
+		local var_7_2 = arg_7_0.findTF("btnAchieve", var_7_1)
+		local var_7_3 = arg_7_0.findTF("achieve_sign", var_7_1)
+		local var_7_4 = _.include(arg_7_0.activity.data1_list, var_7_0[1])
+
+		if var_7_4:
+			var_7_1.transform.SetAsLastSibling()
+
+		setGray(arg_7_0.findTF("limit_label", var_7_1), var_7_4)
+		setGray(arg_7_0.findTF("items", var_7_1), var_7_4)
+		setActive(var_7_3, var_7_4)
+		setActive(var_7_2, arg_7_0.shareData.player.level >= var_7_0[1] and not var_7_4)
+
+def var_0_0.OnDestroy(arg_8_0):
+	return
+
+return var_0_0

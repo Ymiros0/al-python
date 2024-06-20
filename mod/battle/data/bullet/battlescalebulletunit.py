@@ -1,58 +1,51 @@
-ys = ys or {}
+import math
+from Vector3  import Vector3
+import BattleBulletUnit
 
-local var_0_0 = ys
-local var_0_1 = var_0_0.Battle.BattleBulletEvent
-local var_0_2 = var_0_0.Battle.BattleFormulas
-local var_0_3 = Vector3.up
-local var_0_4 = var_0_0.Battle.BattleVariable
-local var_0_5 = var_0_0.Battle.BattleConfig
+class BattleScaleBulletUnit(BattleBulletUnit):
+	__name = "BattleScaleBulletUnit"
 
-var_0_0.Battle.BattleScaleBulletUnit = class("BattleScaleBulletUnit", var_0_0.Battle.BattleBulletUnit)
-var_0_0.Battle.BattleScaleBulletUnit.__name = "BattleScaleBulletUnit"
+	def __init__(arg_1_0, arg_1_1, arg_1_2):
+		super().__init__(arg_1_0, arg_1_1, arg_1_2)
 
-local var_0_6 = var_0_0.Battle.BattleScaleBulletUnit
+		arg_1_0._scaleX = 0
 
-def var_0_6.Ctor(arg_1_0, arg_1_1, arg_1_2):
-	var_0_6.super.Ctor(arg_1_0, arg_1_1, arg_1_2)
+	def Update(arg_2_0, arg_2_1):
+		var_2_0 = arg_2_0._tempData.cld_box
 
-	arg_1_0._scaleX = 0
+		if arg_2_0._scaleX + var_2_0[1] > arg_2_0._scaleLimit:
+			arg_2_0.calcSpeed()
+		else:
+			arg_2_0.UpdateCLDBox()
 
-def var_0_6.Update(arg_2_0, arg_2_1):
-	local var_2_0 = arg_2_0._tempData.cld_box
+		super().Update(arg_2_0, arg_2_1)
 
-	if arg_2_0._scaleX + var_2_0[1] > arg_2_0._scaleLimit:
-		arg_2_0.calcSpeed()
-	else
-		arg_2_0.UpdateCLDBox()
+	def SetTemplateData(arg_3_0, arg_3_1):
+		super().SetTemplateData(arg_3_0, arg_3_1)
 
-	var_0_6.super.Update(arg_2_0, arg_2_1)
+		arg_3_0._scaleSpeed = arg_3_0._tempData.extra_param.scaleSpeed
+		arg_3_0._scaleLimit = arg_3_0._tempData.extra_param.cldMax
 
-def var_0_6.SetTemplateData(arg_3_0, arg_3_1):
-	var_0_6.super.SetTemplateData(arg_3_0, arg_3_1)
+	def InitSpeed(arg_4_0, arg_4_1):
+		super().InitSpeed(arg_4_0, arg_4_1)
+		arg_4_0.calcScaleSpeed()
 
-	arg_3_0._scaleSpeed = arg_3_0._tempData.extra_param.scaleSpeed
-	arg_3_0._scaleLimit = arg_3_0._tempData.extra_param.cldMax
+	def calcScaleSpeed(arg_5_0):
+		var_5_0 = arg_5_0._scaleSpeed * 0.5
+		var_5_1 = math.deg2Rad * arg_5_0._yAngle
 
-def var_0_6.InitSpeed(arg_4_0, arg_4_1):
-	var_0_6.super.InitSpeed(arg_4_0, arg_4_1)
-	arg_4_0.calcScaleSpeed()
+		arg_5_0._speed = Vector3(var_5_0 * math.cos(var_5_1), 0, var_5_0 * math.sin(var_5_1))
 
-def var_0_6.calcScaleSpeed(arg_5_0):
-	local var_5_0 = arg_5_0._scaleSpeed * 0.5
-	local var_5_1 = math.deg2Rad * arg_5_0._yAngle
+	def UpdateCLDBox(arg_6_0):
+		var_6_0 = arg_6_0._tempData.cld_box
 
-	arg_5_0._speed = Vector3(var_5_0 * math.cos(var_5_1), 0, var_5_0 * math.sin(var_5_1))
+		arg_6_0._scaleX = arg_6_0._scaleX + arg_6_0._scaleSpeed
 
-def var_0_6.UpdateCLDBox(arg_6_0):
-	local var_6_0 = arg_6_0._tempData.cld_box
+		arg_6_0._cldComponent.ResetSize(var_6_0[1] + arg_6_0._scaleX, var_6_0[2], var_6_0[3])
 
-	arg_6_0._scaleX = arg_6_0._scaleX + arg_6_0._scaleSpeed
+	def GetRadian(arg_7_0):
+		var_7_0 = arg_7_0._radCache or arg_7_0.GetYAngle() * math.deg2Rad
+		var_7_1 = arg_7_0._cosCache or math.cos(var_7_0)
+		var_7_2 = arg_7_0._sinCache or math.sin(var_7_0)
 
-	arg_6_0._cldComponent.ResetSize(var_6_0[1] + arg_6_0._scaleX, var_6_0[2], var_6_0[3])
-
-def var_0_6.GetRadian(arg_7_0):
-	local var_7_0 = arg_7_0._radCache or arg_7_0.GetYAngle() * math.deg2Rad
-	local var_7_1 = arg_7_0._cosCache or math.cos(var_7_0)
-	local var_7_2 = arg_7_0._sinCache or math.sin(var_7_0)
-
-	return var_7_0, var_7_1, var_7_2
+		return var_7_0, var_7_1, var_7_2

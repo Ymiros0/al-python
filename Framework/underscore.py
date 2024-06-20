@@ -60,6 +60,7 @@ def _map(arg_11_0, arg_11_1):
 	for iter_11_0 in var_0_0.iter(arg_11_0):
 		var_11_0.append(arg_11_1(iter_11_0))
 
+
 	return var_11_0
 funcs.map = _map
 

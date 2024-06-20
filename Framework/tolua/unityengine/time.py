@@ -1,7 +1,10 @@
-local var_0_0 = rawget
-local var_0_1 = UnityEngine.Time
-local var_0_2 = tolua.gettime
-local var_0_3 = {
+from luatable import table, setmetatable
+
+from tolua import UnityEngine
+old_time = UnityEngine.Time
+import time
+
+meta = table(
 	maximumDeltaTime = 0.3333333,
 	frameCount = 1,
 	time = 0,
@@ -13,88 +16,97 @@ local var_0_3 = {
 	unscaledDeltaTime = 0,
 	timeScale = 1,
 	fixedTime = 0
-}
-local var_0_4 = {
-	def fixedDeltaTime:(arg_1_0)
-		var_0_3.fixedDeltaTime = arg_1_0
-		var_0_1.fixedDeltaTime = arg_1_0,
-	def maximumDeltaTime:(arg_2_0)
-		var_0_3.maximumDeltaTime = arg_2_0
-		var_0_1.maximumDeltaTime = arg_2_0,
-	def timeScale:(arg_3_0)
-		var_0_3.timeScale = arg_3_0
-		var_0_1.timeScale = arg_3_0,
-	def captureFramerate:(arg_4_0)
-		var_0_3.captureFramerate = arg_4_0
-		var_0_1.captureFramerate = arg_4_0,
-	def timeSinceLevelLoad:(arg_5_0)
-		var_0_3.timeSinceLevelLoad = arg_5_0
-}
+)
+def fixedDeltaTime(arg_1_0):
+	meta.fixedDeltaTime = arg_1_0
+	old_time.fixedDeltaTime = arg_1_0
+def maximumDeltaTime(arg_2_0):
+	meta.maximumDeltaTime = arg_2_0
+	old_time.maximumDeltaTime = arg_2_0
+def timeScale(arg_3_0):
+	meta.timeScale = arg_3_0
+	old_time.timeScale = arg_3_0
+def captureFramerate(arg_4_0):
+	meta.captureFramerate = arg_4_0
+	old_time.captureFramerate = arg_4_0
+def timeSinceLevelLoad(arg_5_0):
+	meta.timeSinceLevelLoad = arg_5_0
+var_0_4 = table(
+	fixedDeltaTime,
+	maximumDeltaTime,
+	timeScale,
+	captureFramerate,
+	timeSinceLevelLoad
+)
 
-def var_0_3.__index(arg_6_0, arg_6_1):
-	local var_6_0 = var_0_0(var_0_3, arg_6_1)
+def __index(arg_6_0, arg_6_1):
+	var_6_0 = table.rawget(meta, arg_6_1)
 
 	if var_6_0:
 		return var_6_0
 
-	return var_0_1.__index(var_0_1, arg_6_1)
+	return old_time.__index(old_time, arg_6_1)
+meta.__index = __index
 
-def var_0_3.__newindex(arg_7_0, arg_7_1, arg_7_2):
-	local var_7_0 = var_0_0(var_0_4, arg_7_1)
+def __newindex(arg_7_0, arg_7_1, arg_7_2):
+	var_7_0 = table.rawget(var_0_4, arg_7_1)
 
 	if var_7_0:
 		return var_7_0(arg_7_2)
 
-	error(string.format("Property or indexer `UnityEngine.Time.%s' cannot be assigned to (it is read only)", arg_7_1))
+	raise PermissionError("Property or indexer `UnityEngine.Time.%s' cannot be assigned to (it is read only)" % arg_7_1)
+meta.__newindex = __newindex
 
-local var_0_5 = {}
-local var_0_6 = 1
+Time = table() #Rewrite as class
+var_0_6 = 1
 
-def var_0_5.SetDeltaTime(arg_8_0, arg_8_1, arg_8_2):
-	local var_8_0 = var_0_3
+def SetDeltaTime(arg_8_0, arg_8_1, arg_8_2):
+	meta.deltaTime = arg_8_1
+	meta.unscaledDeltaTime = arg_8_2
+	var_0_6 -= 1
 
-	var_8_0.deltaTime = arg_8_1
-	var_8_0.unscaledDeltaTime = arg_8_2
-	var_0_6 = var_0_6 - 1
-
-	if var_0_6 == 0 and var_0_1:
-		var_8_0.time = var_0_1.time
-		var_8_0.timeSinceLevelLoad = var_0_1.timeSinceLevelLoad
-		var_8_0.unscaledTime = var_0_1.unscaledTime
-		var_8_0.realtimeSinceStartup = var_0_1.realtimeSinceStartup
-		var_8_0.frameCount = var_0_1.frameCount
+	if var_0_6 == 0 and old_time:
+		meta.time = old_time.time
+		meta.timeSinceLevelLoad = old_time.timeSinceLevelLoad
+		meta.unscaledTime = old_time.unscaledTime
+		meta.realtimeSinceStartup = old_time.realtimeSinceStartup
+		meta.frameCount = old_time.frameCount
 		var_0_6 = 1000000
-	else
-		var_8_0.time = var_8_0.time + arg_8_1
-		var_8_0.realtimeSinceStartup = var_8_0.realtimeSinceStartup + arg_8_2
-		var_8_0.timeSinceLevelLoad = var_8_0.timeSinceLevelLoad + arg_8_1
-		var_8_0.unscaledTime = var_8_0.unscaledTime + arg_8_2
+	else:
+		meta.time += arg_8_1
+		meta.realtimeSinceStartup += arg_8_2
+		meta.timeSinceLevelLoad += arg_8_1
+		meta.unscaledTime += arg_8_2
+Time.SetDeltaTime = SetDeltaTime
 
-def var_0_5.SetFixedDelta(arg_9_0, arg_9_1):
-	var_0_3.deltaTime = arg_9_1
-	var_0_3.fixedDeltaTime = arg_9_1
-	var_0_3.fixedTime = var_0_3.fixedTime + arg_9_1
+def SetFixedDelta(arg_9_0, arg_9_1):
+	meta.deltaTime = arg_9_1
+	meta.fixedDeltaTime = arg_9_1
+	meta.fixedTime += arg_9_1
+Time.SetFixedDelta = SetFixedDelta
 
-def var_0_5.SetFrameCount(arg_10_0):
-	var_0_3.frameCount = var_0_3.frameCount + 1
+def SetFrameCount(arg_10_0):
+	meta.frameCount += 1
+Time.SetFrameCount = SetFrameCount
 
-def var_0_5.SetTimeScale(arg_11_0, arg_11_1):
-	local var_11_0 = var_0_3.timeScale
+def SetTimeScale(arg_11_0, arg_11_1):
+	var_11_0 = meta.timeScale
 
-	var_0_3.timeScale = arg_11_1
-	var_0_1.timeScale = arg_11_1
+	meta.timeScale = arg_11_1
+	old_time.timeScale = arg_11_1
 
 	return var_11_0
+Time.SetTimeScale = SetTimeScale
 
-def var_0_5.GetTimestamp(arg_12_0):
-	return var_0_2()
+def GetTimestamp(arg_12_0):
+	return time.time()
+Time.GetTimestamp = GetTimestamp
 
-UnityEngine.Time = var_0_5
 
-setmetatable(var_0_5, var_0_3)
 
-if var_0_1 != None:
-	var_0_3.maximumDeltaTime = var_0_1.maximumDeltaTime
-	var_0_3.timeScale = var_0_1.timeScale
+setmetatable(Time, meta)
 
-return var_0_5
+if old_time != None:
+	meta.maximumDeltaTime = old_time.maximumDeltaTime
+	meta.timeScale = old_time.timeScale
+

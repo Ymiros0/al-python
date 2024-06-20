@@ -1,48 +1,51 @@
-local var_0_0 = class("AttributeType")
+from luatable import table
 
-var_0_0.Durability = "durability"
-var_0_0.Cannon = "cannon"
-var_0_0.Torpedo = "torpedo"
-var_0_0.AntiAircraft = "antiaircraft"
-var_0_0.AntiSub = "antisub"
-var_0_0.Air = "air"
-var_0_0.Reload = "reload"
-var_0_0.ArmorType = "armor_type"
-var_0_0.Armor = "armor"
-var_0_0.Hit = "hit"
-var_0_0.Speed = "speed"
-var_0_0.Luck = "luck"
-var_0_0.Dodge = "dodge"
-var_0_0.Expend = "expend"
-var_0_0.Intimacy = "intimacy"
-var_0_0.AirDominate = "AirDominate"
-var_0_0.Damage = "damage"
-var_0_0.CD = "cd"
-var_0_0.Healthy = "healthy"
-var_0_0.Speciality = "speciality"
-var_0_0.Range = "range"
-var_0_0.Angle = "angle"
-var_0_0.Scatter = "scatter"
-var_0_0.Ammo = "ammo"
-var_0_0.HuntingRange = "hunting_range"
-var_0_0.AirDurability = "AirDurability"
-var_0_0.AntiSiren = "anti_siren"
-var_0_0.Corrected = "corrected"
-var_0_0.OxyMax = "oxy_max"
-var_0_0.OxyCost = "oxy_cost"
-var_0_0.OxyRecovery = "oxy_recovery"
-var_0_0.OxyRecoverySurface = "oxy_recovery_surface"
-var_0_0.OxyRecoveryBench = "oxy_recovery_bench"
-var_0_0.OxyAttackDuration = "attack_duration"
-var_0_0.OxyRaidDistance = "raid_distance"
-var_0_0.SonarRange = "sonarRange"
-var_0_0.Tactics = "tactics"
-var_0_0.WorldPower = "world_power"
+from Framework import i18n
 
-def var_0_0.Type2Name(arg_1_0):
-	return i18n("attribute_" .. arg_1_0)
 
-var_0_0.eliteConditionTip = {
+Durability = "durability"
+Cannon = "cannon"
+Torpedo = "torpedo"
+AntiAircraft = "antiaircraft"
+AntiSub = "antisub"
+Air = "air"
+Reload = "reload"
+ArmorType = "armor_type"
+Armor = "armor"
+Hit = "hit"
+Speed = "speed"
+Luck = "luck"
+Dodge = "dodge"
+Expend = "expend"
+Intimacy = "intimacy"
+AirDominate = "AirDominate"
+Damage = "damage"
+CD = "cd"
+Healthy = "healthy"
+Speciality = "speciality"
+Range = "range"
+Angle = "angle"
+Scatter = "scatter"
+Ammo = "ammo"
+HuntingRange = "hunting_range"
+AirDurability = "AirDurability"
+AntiSiren = "anti_siren"
+Corrected = "corrected"
+OxyMax = "oxy_max"
+OxyCost = "oxy_cost"
+OxyRecovery = "oxy_recovery"
+OxyRecoverySurface = "oxy_recovery_surface"
+OxyRecoveryBench = "oxy_recovery_bench"
+OxyAttackDuration = "attack_duration"
+OxyRaidDistance = "raid_distance"
+SonarRange = "sonarRange"
+Tactics = "tactics"
+WorldPower = "world_power"
+
+def Type2Name(arg_1_0):
+	return i18n("attribute_" + arg_1_0)
+
+eliteConditionTip = table(
 	cannon = "elite_condition_cannon",
 	air = "elite_condition_air",
 	dodge = "elite_condition_dodge",
@@ -53,23 +56,23 @@ var_0_0.eliteConditionTip = {
 	antiaircraft = "elite_condition_antiaircraft",
 	antisub = "elite_condition_antisub",
 	level = "elite_condition_level"
+)
+
+var_0_1 = {
+	0: "common_compare_equal",
+	1: "common_compare_larger",
+	2: "common_compare_not_less_than",
+	-1: "common_compare_smaller",
+	-2: "common_compare_not_more_than"
 }
 
-local var_0_1 = {
-	[0] = "common_compare_equal",
-	"common_compare_larger",
-	"common_compare_not_less_than",
-	[-1] = "common_compare_smaller",
-	[-2] = "common_compare_not_more_than"
-}
-
-def var_0_0.eliteConditionCompareTip(arg_2_0):
+def eliteConditionCompareTip(arg_2_0):
 	return i18n(var_0_1[arg_2_0])
 
-def var_0_0.EliteCondition2Name(arg_3_0, ...):
-	return i18n(var_0_0.eliteConditionTip[arg_3_0], ...)
+def EliteCondition2Name(arg_3_0, *args):
+	return i18n(eliteConditionTip[arg_3_0], *args)
 
-def var_0_0.EliteConditionCompare(arg_4_0, arg_4_1, arg_4_2):
+def EliteConditionCompare(arg_4_0, arg_4_1, arg_4_2):
 	if arg_4_0 == 0:
 		return arg_4_1 == arg_4_2
 	elif arg_4_0 == 1:
@@ -80,37 +83,37 @@ def var_0_0.EliteConditionCompare(arg_4_0, arg_4_1, arg_4_2):
 		return arg_4_2 <= arg_4_1
 	elif arg_4_0 == -2:
 		return arg_4_1 <= arg_4_2
-	else
+	else:
 		assert(False, "compare type error")
 
-var_0_0.attrNameTable = {
-	[var_0_0.Durability] = "maxHP",
-	[var_0_0.Cannon] = "cannonPower",
-	[var_0_0.Torpedo] = "torpedoPower",
-	[var_0_0.AntiAircraft] = "antiAirPower",
-	[var_0_0.AntiSub] = "antiSubPower",
-	[var_0_0.Air] = "airPower",
-	[var_0_0.Reload] = "loadSpeed",
-	[var_0_0.Hit] = "attackRating",
-	[var_0_0.Speed] = "speed",
-	[var_0_0.Luck] = "luck",
-	[var_0_0.Dodge] = "dodgeRate",
-	[var_0_0.OxyMax] = "oxyMax",
-	[var_0_0.OxyCost] = "oxyCost",
-	[var_0_0.OxyRecovery] = "oxyRecovery",
-	[var_0_0.OxyRecoveryBench] = "oxyRecoveryBench",
-	[var_0_0.OxyRecoverySurface] = "oxyRecoverySurface",
-	[var_0_0.OxyAttackDuration] = "oxyAtkDuration",
-	[var_0_0.OxyRaidDistance] = "raidDist"
-}
+attrNameTable = table({
+	Durability: "maxHP",
+	Cannon: "cannonPower",
+	Torpedo: "torpedoPower",
+	AntiAircraft: "antiAirPower",
+	AntiSub: "antiSubPower",
+	Air: "airPower",
+	Reload: "loadSpeed",
+	Hit: "attackRating",
+	Speed: "speed",
+	Luck: "luck",
+	Dodge: "dodgeRate",
+	OxyMax: "oxyMax",
+	OxyCost: "oxyCost",
+	OxyRecovery: "oxyRecovery",
+	OxyRecoveryBench: "oxyRecoveryBench",
+	OxyRecoverySurface: "oxyRecoverySurface",
+	OxyAttackDuration: "oxyAtkDuration",
+	OxyRaidDistance: "raidDist"
+})
 
-def var_0_0.ConvertBattleAttrName(arg_5_0):
-	if var_0_0.attrNameTable[arg_5_0]:
-		return var_0_0.attrNameTable[arg_5_0]
-	else
+def ConvertBattleAttrName(arg_5_0):
+	if attrNameTable[arg_5_0]:
+		return attrNameTable[arg_5_0]
+	else:
 		return arg_5_0
 
-var_0_0.PrimalAttr = {
+PrimalAttr = table(
 	torpedoPower = True,
 	loadSpeed = True,
 	antiSubPower = True,
@@ -120,9 +123,7 @@ var_0_0.PrimalAttr = {
 	attackRating = True,
 	cannonPower = True,
 	velocity = True
-}
+)
 
-def var_0_0.IsPrimalBattleAttr(arg_6_0):
-	return var_0_0.PrimalAttr[arg_6_0]
-
-return var_0_0
+def IsPrimalBattleAttr(arg_6_0):
+	return PrimalAttr[arg_6_0]

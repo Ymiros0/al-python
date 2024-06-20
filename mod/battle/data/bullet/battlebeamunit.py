@@ -1,109 +1,106 @@
-ys = ys or {}
+from Vector3 import Vector3
+from alsupport import math
+import BattleDataFunction
+import BattleVariable
+import BattleConfig
+import TimeMgr
 
-local var_0_0 = ys
-local var_0_1 = var_0_0.Battle.BattleDataFunction
-local var_0_2 = var_0_0.Battle.BattleVariable
-local var_0_3 = var_0_0.Battle.BattleConfig
+class BattleBeamUnit:
+	__name = "BattleBeamUnit"
+	BEAM_STATE_READY = "ready"
+	BEAM_STATE_ATTACK = "attack"
+	BEAM_STATE_FINISH = "finish"
 
-var_0_0.Battle.BattleBeamUnit = class("BattleBeamUnit")
-var_0_0.Battle.BattleBeamUnit.__name = "BattleBeamUnit"
+	def __init__(self, arg_1_1, arg_1_2):
+		self._bulletID = arg_1_1
+		self._beamInfoID = arg_1_2
+		self._cldList = {}
+		self._beamState = self.BEAM_STATE_READY
 
-local var_0_4 = var_0_0.Battle.BattleBeamUnit
+	def IsBeamActive(self):
+		return self._aoe.GetActiveFlag()
 
-var_0_4.BEAM_STATE_READY = "ready"
-var_0_4.BEAM_STATE_ATTACK = "attack"
-var_0_4.BEAM_STATE_FINISH = "finish"
+	def ClearBeam(self):
+		self._beamState = self.BEAM_STATE_FINISH
+		self._aoe = None
+		self._cldList = {}
+		self._nextDamageTime = None
 
-def var_0_4.Ctor(arg_1_0, arg_1_1, arg_1_2):
-	arg_1_0._bulletID = arg_1_1
-	arg_1_0._beamInfoID = arg_1_2
-	arg_1_0._cldList = {}
-	arg_1_0._beamState = var_0_4.BEAM_STATE_READY
+	def SetAoeData(arg_4_0, arg_4_1):
+		arg_4_0._aoe = arg_4_1
+		arg_4_0._beamTemp = BattleDataFunction.GetBarrageTmpDataFromID(arg_4_0._beamInfoID)
+		arg_4_0._bulletTemp = BattleDataFunction.GetBulletTmpDataFromID(arg_4_0._bulletID)
+		arg_4_0._angle = arg_4_0._beamTemp.angle
 
-def var_0_4.IsBeamActive(arg_2_0):
-	return arg_2_0._aoe.GetActiveFlag()
+		arg_4_0._aoe.SetAngle(arg_4_0._angle + arg_4_0._aimAngle)
 
-def var_0_4.ClearBeam(arg_3_0):
-	arg_3_0._beamState = var_0_4.BEAM_STATE_FINISH
-	arg_3_0._aoe = None
-	arg_3_0._cldList = {}
-	arg_3_0._nextDamageTime = None
+		var_4_0 = arg_4_0._bulletTemp.extra_param.diveFilter
 
-def var_0_4.SetAoeData(arg_4_0, arg_4_1):
-	arg_4_0._aoe = arg_4_1
-	arg_4_0._beamTemp = var_0_1.GetBarrageTmpDataFromID(arg_4_0._beamInfoID)
-	arg_4_0._bulletTemp = var_0_1.GetBulletTmpDataFromID(arg_4_0._bulletID)
-	arg_4_0._angle = arg_4_0._beamTemp.angle
+		if var_4_0:
+			arg_4_0._aoe.SetDiveFilter(var_4_0)
 
-	arg_4_0._aoe.SetAngle(arg_4_0._angle + arg_4_0._aimAngle)
+	def SetAimAngle(arg_5_0, arg_5_1):
+		arg_5_0._aimAngle = arg_5_1 or 0
 
-	local var_4_0 = arg_4_0._bulletTemp.extra_param.diveFilter
+	def SetAimPosition(arg_6_0, arg_6_1, arg_6_2, arg_6_3):
+		if arg_6_3 == BattleConfig.FOE_CODE:
+			arg_6_0._aimAngle = math.rad2Deg * math.atan2(arg_6_2.z - arg_6_1.z, arg_6_2.x - arg_6_1.x)
+		elif arg_6_3 == BattleConfig.FRIENDLY_CODE:
+			arg_6_0._aimAngle = math.rad2Deg * math.atan2(arg_6_1.z - arg_6_2.z, arg_6_1.x - arg_6_2.x)
 
-	if var_4_0:
-		arg_4_0._aoe.SetDiveFilter(var_4_0)
+	def getAngleRatio(arg_7_0):
+		return BattleVariable.GetSpeedRatio(arg_7_0._aoe.GetTimeRationExemptKey(), arg_7_0._aoe.GetIFF())
 
-def var_0_4.SetAimAngle(arg_5_0, arg_5_1):
-	arg_5_0._aimAngle = arg_5_1 or 0
+	def GetAoeData(arg_8_0):
+		return arg_8_0._aoe
 
-def var_0_4.SetAimPosition(arg_6_0, arg_6_1, arg_6_2, arg_6_3):
-	if arg_6_3 == var_0_3.FOE_CODE:
-		arg_6_0._aimAngle = math.rad2Deg * math.atan2(arg_6_2.z - arg_6_1.z, arg_6_2.x - arg_6_1.x)
-	elif arg_6_3 == var_0_3.FRIENDLY_CODE:
-		arg_6_0._aimAngle = math.rad2Deg * math.atan2(arg_6_1.z - arg_6_2.z, arg_6_1.x - arg_6_2.x)
+	def UpdateBeamPos(arg_9_0, arg_9_1):
+		arg_9_0._aoe.SetPosition(Vector3(arg_9_1.x + arg_9_0._beamTemp.offset_x, 0, arg_9_1.z + arg_9_0._beamTemp.offset_z))
 
-def var_0_4.getAngleRatio(arg_7_0):
-	return var_0_2.GetSpeedRatio(arg_7_0._aoe.GetTimeRationExemptKey(), arg_7_0._aoe.GetIFF())
+	def UpdateBeamAngle(arg_10_0):
+		arg_10_0._angle = arg_10_0._angle + arg_10_0._beamTemp.delta_angle * arg_10_0.getAngleRatio()
 
-def var_0_4.GetAoeData(arg_8_0):
-	return arg_8_0._aoe
+		arg_10_0._aoe.SetAngle(arg_10_0._angle + arg_10_0._aimAngle)
 
-def var_0_4.UpdateBeamPos(arg_9_0, arg_9_1):
-	arg_9_0._aoe.SetPosition(Vector3(arg_9_1.x + arg_9_0._beamTemp.offset_x, 0, arg_9_1.z + arg_9_0._beamTemp.offset_z))
+	def AddCldUnit(arg_11_0, arg_11_1):
+		var_11_0 = arg_11_1.GetUniqueID()
 
-def var_0_4.UpdateBeamAngle(arg_10_0):
-	arg_10_0._angle = arg_10_0._angle + arg_10_0._beamTemp.delta_angle * arg_10_0.getAngleRatio()
+		arg_11_0._cldList[var_11_0] = arg_11_1
 
-	arg_10_0._aoe.SetAngle(arg_10_0._angle + arg_10_0._aimAngle)
+	def RemoveCldUnit(arg_12_0, arg_12_1):
+		var_12_0 = arg_12_1.GetUniqueID()
 
-def var_0_4.AddCldUnit(arg_11_0, arg_11_1):
-	local var_11_0 = arg_11_1.GetUniqueID()
+		arg_12_0._cldList[var_12_0] = None
 
-	arg_11_0._cldList[var_11_0] = arg_11_1
+	def ChangeBeamState(arg_13_0, arg_13_1):
+		arg_13_0._beamState = arg_13_1
 
-def var_0_4.RemoveCldUnit(arg_12_0, arg_12_1):
-	local var_12_0 = arg_12_1.GetUniqueID()
+	def GetBeamState(arg_14_0):
+		return arg_14_0._beamState
 
-	arg_12_0._cldList[var_12_0] = None
+	def GetCldUnitList(arg_15_0):
+		return arg_15_0._cldList
 
-def var_0_4.ChangeBeamState(arg_13_0, arg_13_1):
-	arg_13_0._beamState = arg_13_1
+	def BeginFocus(arg_16_0):
+		arg_16_0._nextDamageTime = TimeMgr.GetInstance().GetCombatTime() + arg_16_0._beamTemp.senior_delay
 
-def var_0_4.GetBeamState(arg_14_0):
-	return arg_14_0._beamState
+	def DealDamage(arg_17_0):
+		arg_17_0._nextDamageTime = TimeMgr.GetInstance().GetCombatTime() + arg_17_0._beamTemp.delta_delay
 
-def var_0_4.GetCldUnitList(arg_15_0):
-	return arg_15_0._cldList
+	def CanDealDamage(arg_18_0):
+		return arg_18_0._nextDamageTime < TimeMgr.GetInstance().GetCombatTime()
 
-def var_0_4.BeginFocus(arg_16_0):
-	arg_16_0._nextDamageTime = pg.TimeMgr.GetInstance().GetCombatTime() + arg_16_0._beamTemp.senior_delay
+	def GetFXID(arg_19_0):
+		return arg_19_0._bulletTemp.hit_fx
 
-def var_0_4.DealDamage(arg_17_0):
-	arg_17_0._nextDamageTime = pg.TimeMgr.GetInstance().GetCombatTime() + arg_17_0._beamTemp.delta_delay
+	def GetSFXID(arg_20_0):
+		return arg_20_0._bulletTemp.hit_sfx
 
-def var_0_4.CanDealDamage(arg_18_0):
-	return arg_18_0._nextDamageTime < pg.TimeMgr.GetInstance().GetCombatTime()
+	def GetBulletID(arg_21_0):
+		return arg_21_0._bulletID
 
-def var_0_4.GetFXID(arg_19_0):
-	return arg_19_0._bulletTemp.hit_fx
+	def GetBeamInfoID(arg_22_0):
+		return arg_22_0._beamInfoID
 
-def var_0_4.GetSFXID(arg_20_0):
-	return arg_20_0._bulletTemp.hit_sfx
-
-def var_0_4.GetBulletID(arg_21_0):
-	return arg_21_0._bulletID
-
-def var_0_4.GetBeamInfoID(arg_22_0):
-	return arg_22_0._beamInfoID
-
-def var_0_4.GetBeamExtraParam(arg_23_0):
-	return arg_23_0._bulletTemp.extra_param
+	def GetBeamExtraParam(arg_23_0):
+		return arg_23_0._bulletTemp.extra_param

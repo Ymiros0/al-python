@@ -1,15 +1,15 @@
-local var_0_0 = class("TeamType")
-
-var_0_0.Vanguard = "vanguard"
-var_0_0.Main = "main"
-var_0_0.Submarine = "submarine"
-var_0_0.Support = "support"
-var_0_0.TeamTypeIndex = {
-	var_0_0.Vanguard,
-	var_0_0.Main,
-	var_0_0.Submarine
-}
-var_0_0.VanguardShipType = {
+from luatable import table, pairs, ipairs
+import ShipType
+Vanguard = "vanguard"
+Main = "main"
+Submarine = "submarine"
+Support = "support"
+TeamTypeIndex = table(
+	Vanguard,
+	Main,
+	Submarine
+)
+VanguardShipType = table(
 	ShipType.QuZhu,
 	ShipType.QingXun,
 	ShipType.ZhongXun,
@@ -19,8 +19,8 @@ var_0_0.VanguardShipType = {
 	ShipType.Yunshu,
 	ShipType.DaoQuV,
 	ShipType.FengFanV
-}
-var_0_0.MainShipType = {
+)
+MainShipType = table(
 	ShipType.ZhanXun,
 	ShipType.ZhanLie,
 	ShipType.QingHang,
@@ -30,51 +30,49 @@ var_0_0.MainShipType = {
 	ShipType.ZhongPao,
 	ShipType.DaoQuM,
 	ShipType.FengFanM
-}
-var_0_0.SubShipType = {
+)
+SubShipType = table(
 	ShipType.QianTing,
 	ShipType.QianMu,
 	ShipType.FengFanS
-}
-var_0_0.VanguardMax = 3
-var_0_0.MainMax = 3
-var_0_0.SubmarineMax = 3
+)
+VanguardMax = 3
+MainMax = 3
+SubmarineMax = 3
 
-def var_0_0.GetTeamShipMax(arg_1_0):
-	if arg_1_0 == var_0_0.Vanguard:
-		return var_0_0.VanguardMax
-	elif arg_1_0 == var_0_0.Main:
-		return var_0_0.MainMax
-	elif arg_1_0 == var_0_0.Submarine:
-		return var_0_0.SubmarineMax
+def GetTeamShipMax(arg_1_0):
+	if arg_1_0 == Vanguard:
+		return VanguardMax
+	elif arg_1_0 == Main:
+		return MainMax
+	elif arg_1_0 == Submarine:
+		return SubmarineMax
 
-var_0_0.TeamPos = {}
-var_0_0.TeamPos.FLAG_SHIP = "FlagShip"
-var_0_0.TeamPos.LEADER = "Leader"
-var_0_0.TeamPos.CENTER = "Center"
-var_0_0.TeamPos.REAR = "Rear"
-var_0_0.TeamPos.CONSORT = "Consort"
-var_0_0.TeamPos.SUB_LEADER = "SubLeader"
-var_0_0.TeamPos.SUB_CONSORT = "SubConsort"
-var_0_0.TeamPos.UPPER_CONSORT = "UpperConsort"
-var_0_0.TeamPos.LOWER_CONSORT = "LowerConsort"
+TeamPos = table()
+TeamPos.FLAG_SHIP = "FlagShip"
+TeamPos.LEADER = "Leader"
+TeamPos.CENTER = "Center"
+TeamPos.REAR = "Rear"
+TeamPos.CONSORT = "Consort"
+TeamPos.SUB_LEADER = "SubLeader"
+TeamPos.SUB_CONSORT = "SubConsort"
+TeamPos.UPPER_CONSORT = "UpperConsort"
+TeamPos.LOWER_CONSORT = "LowerConsort"
 
-local var_0_1 = {
-	[var_0_0.Vanguard] = var_0_0.VanguardShipType,
-	[var_0_0.Main] = var_0_0.MainShipType,
-	[var_0_0.Submarine] = var_0_0.SubShipType
-}
+var_0_1 = table({
+	Vanguard: VanguardShipType,
+	Main: MainShipType,
+	Submarine: SubShipType
+})
 
-def var_0_0.GetShipTypeListFromTeam(arg_2_0):
+def GetShipTypeListFromTeam(arg_2_0):
 	return var_0_1[arg_2_0]
 
-local var_0_2 = {}
+var_0_2 = table()
 
 for iter_0_0, iter_0_1 in pairs(var_0_1):
 	for iter_0_2, iter_0_3 in ipairs(iter_0_1):
 		var_0_2[iter_0_3] = iter_0_0
 
-def var_0_0.GetTeamFromShipType(arg_3_0):
+def GetTeamFromShipType(arg_3_0):
 	return var_0_2[arg_3_0]
-
-return var_0_0

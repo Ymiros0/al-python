@@ -1,8 +1,9 @@
 from luatable import table, setmetatable
 
+
 class allist:
-	def __init__(self):
-		node = table(
+	def __new__(self):
+		node = Node(
 			_next = 0,
 			length = 0,
 			_prev = 0
@@ -11,7 +12,6 @@ class allist:
 		node._prev = node
 		node._next = node
 
-		return setmetatable(node, self)
 
 	def clear(self):
 		self._next = self
@@ -19,7 +19,7 @@ class allist:
 		self.length = 0
 
 	def push(self, elem):
-		node = table(
+		node = Node(
 			_prev = 0,
 			_next = 0,
 			removed = False,
@@ -176,3 +176,9 @@ def rilist(arg_19_0):
 
 
 
+class Node(allist):
+	def __new__(**kwargs):
+		self = table()
+		for k,v in kwargs.items():
+			self.__setattr__(k, v)
+		return self

@@ -105,7 +105,7 @@ def _(arg_9_0, arg_9_1, arg_9_2):
 			return arg_9_2
 		arg_9_2 = arg_9_2._next
 		if arg_9_2 == arg_9_0:
-			return None
+			return
 allist.Find = _
 
 def _(arg_10_0, arg_10_1, arg_10_2):
@@ -117,7 +117,7 @@ def _(arg_10_0, arg_10_1, arg_10_2):
 
 		arg_10_2 = arg_10_2._prev
 		if arg_10_2 == arg_10_0:
-			return None
+			return
 allist.findlast = _
 
 def _(arg_11_0, arg_11_1):
@@ -126,7 +126,7 @@ def _(arg_11_0, arg_11_1):
 	if var_11_0 != arg_11_0:
 		return var_11_0, var_11_0.value
 
-	return None
+	return
 allist.next = _
 
 def _(arg_12_0, arg_12_1):
@@ -135,7 +135,7 @@ def _(arg_12_0, arg_12_1):
 	if var_12_0 != arg_12_0:
 		return var_12_0, var_12_0.value
 
-	return None
+	return
 allist.prev = _
 
 def _(arg_13_0, arg_13_1):

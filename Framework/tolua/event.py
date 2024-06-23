@@ -4,8 +4,8 @@ from Framework.tolua.unityengine.Time import Time
 xpcall
 pcall
 traceback #tolua.traceback
-ilist
-def __call(arg_1_0, *args):
+from Framework.tolua.list import ilist
+def __call(arg_1_0, *args): #?????????????
 	if jit:
 		if arg_1_0.obj == None:
 			return xpcall(arg_1_0.func, traceback, *args)
@@ -182,8 +182,7 @@ def __call(arg_21_0, *args):
 		var_21_3[iter_21_2] = None
 var_0_13.__call = __call
 
-def event(arg_22_0, arg_22_1):
-	arg_22_1 = arg_22_1 or False
+def event(arg_22_0, arg_22_1=False):
 
 	return setmetatable(table(
 		lock = False,

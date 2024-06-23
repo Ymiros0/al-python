@@ -1,59 +1,58 @@
-local var_0_0 = import(".View")
-local var_0_1 = import("..patterns.observer.Observer")
-local var_0_2 = class("Controller")
+from luatable import table
 
-def var_0_2.Ctor(arg_1_0, arg_1_1):
-	if var_0_2.instanceMap[arg_1_1] != None:
-		error(var_0_2.MULTITON_MSG)
+from View import View
+from Framework.puremvc.patterns.observer.Observer import Observer
+class Controller:
+	def Ctor(self, arg_1_1):
+		if self.instanceMap[arg_1_1] != None:
+			raise BaseException(Controller.MULTITON_MSG)
 
-	arg_1_0.multitonKey = arg_1_1
-	var_0_2.instanceMap[arg_1_0.multitonKey] = arg_1_0
-	arg_1_0.commandMap = {}
+		self.multitonKey = arg_1_1
+		Controller.instanceMap[self.multitonKey] = self
+		self.commandMap = table()
 
-	arg_1_0.initializeController()
+		self.initializeController()
 
-def var_0_2.initializeController(arg_2_0):
-	arg_2_0.view = var_0_0.getInstance(arg_2_0.multitonKey)
+	def initializeController(self):
+		self.view = View.getInstance(self.multitonKey)
 
-def var_0_2.getInstance(arg_3_0):
-	if arg_3_0 == None:
-		return None
+	def getInstance(self, instance_id):
+		if instance_id == None:
+			return None
 
-	if var_0_2.instanceMap[arg_3_0] == None:
-		return var_0_2.New(arg_3_0)
-	else
-		return var_0_2.instanceMap[arg_3_0]
+		if Controller.instanceMap[instance_id] == None:
+			return Controller(instance_id)
+		else:
+			return Controller.instanceMap[instance_id]
 
-def var_0_2.executeCommand(arg_4_0, arg_4_1):
-	local var_4_0 = arg_4_0.commandMap[arg_4_1.getName()]
+	def executeCommand(self, command):
+		var_4_0 = self.commandMap[command.getName()]
 
-	if var_4_0 == None:
-		return
+		if var_4_0 == None:
+			return
 
-	local var_4_1 = var_4_0.New()
+		var_4_1 = var_4_0()
 
-	var_4_1.initializeNotifier(arg_4_0.multitonKey)
-	var_4_1.execute(arg_4_1)
+		var_4_1.initializeNotifier(self.multitonKey)
+		var_4_1.execute(command)
 
-def var_0_2.registerCommand(arg_5_0, arg_5_1, arg_5_2):
-	if arg_5_0.commandMap[arg_5_1] == None:
-		arg_5_0.view.registerObserver(arg_5_1, var_0_1.New(arg_5_0.executeCommand, arg_5_0))
+	def registerCommand(self, arg_5_1, arg_5_2):
+		if self.commandMap[arg_5_1] == None:
+			self.view.registerObserver(arg_5_1, Observer(self.executeCommand, self))
 
-	arg_5_0.commandMap[arg_5_1] = arg_5_2
+		self.commandMap[arg_5_1] = arg_5_2
 
-def var_0_2.hasCommand(arg_6_0, arg_6_1):
-	return arg_6_0.commandMap[arg_6_1] != None
+	def hasCommand(self, arg_6_1):
+		return self.commandMap[arg_6_1] != None
 
-def var_0_2.removeCommand(arg_7_0, arg_7_1):
-	if arg_7_0.hasCommand(arg_7_1):
-		arg_7_0.view.removeObserver(arg_7_1, arg_7_0)
+	def removeCommand(self, arg_7_1):
+		if self.hasCommand(arg_7_1):
+			self.view.removeObserver(arg_7_1, self)
 
-		arg_7_0.commandMap[arg_7_1] = None
+			self.commandMap[arg_7_1] = None
 
-def var_0_2.removeController(arg_8_0):
-	var_0_2.instanceMap[arg_8_0] = None
+	def removeController(self,instance_id):
+		Controller.instanceMap[instance_id] = None
 
-var_0_2.instanceMap = {}
-var_0_2.MULTITON_MSG = "controller key for this Multiton key already constructed"
-
-return var_0_2
+	instanceMap = table()
+	MULTITON_MSG = "controller key for this Multiton key already constructed"

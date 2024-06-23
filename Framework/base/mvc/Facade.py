@@ -1,9 +1,9 @@
 from luatable import table
-import ys
-import pg
 
-ys_local = ys
-pg_local = pg
+from mgr.TimeMgr import TimeMgr #!
+from mod.battle.data.BattleDataProxy import BattleDataProxy
+from mod.battle.data import BattleConfig
+from mod.battle.view.BattleSceneMediator import BattleSceneMediator #!
 
 class Facade:
 	__name = "MVC.Facade"
@@ -13,8 +13,10 @@ class Facade:
 		if it is not None:
 			return it
 		cls.__it__ = it = object.__new__(cls)
-		it.Initialize()
 		return it
+	
+	def __init__(self):
+		self.Initialize()
 
 	def AddDataProxy(self, dataProxy):
 		assert dataProxy.__name is not None and type(dataProxy.__name) == str, self.__name + ".AddDataProxy. dataProxy.__name expected a string value"
@@ -105,7 +107,7 @@ class Facade:
 
 		self._isPause = False
 
-		pg_local.TimeMgr.GetInstance().ResumeBattleTimer()
+		TimeMgr.GetInstance().ResumeBattleTimer()
 
 	def Deactive(self):
 		if self._isPause:
@@ -113,34 +115,34 @@ class Facade:
 
 		self._isPause = True
 
-		pg_local.TimeMgr.GetInstance().PauseBattleTimer()
+		TimeMgr.GetInstance().PauseBattleTimer()
 
 	def ActiveEscape(self):
-		self._escapeAITimer = pg_local.TimeMgr.GetInstance().AddTimer("escapeTimer", 0, ys_local.Battle.BattleConfig.viewInterval, lambda: self.escapeUpdate())
+		self._escapeAITimer = TimeMgr.GetInstance().AddTimer("escapeTimer", 0, BattleConfig.viewInterval, lambda: self.escapeUpdate())
 
 	def DeactiveEscape(self):
-		pg_local.TimeMgr.GetInstance().RemoveTimer(self._escapeAITimer)
+		TimeMgr.GetInstance().RemoveTimer(self._escapeAITimer)
 
 	def RemoveAllTimer(self):
-		pg_local.TimeMgr.GetInstance().RemoveAllBattleTimer()
+		TimeMgr.GetInstance().RemoveAllBattleTimer()
 
 		self._calcTimer = None
 		self._AITimer = None
 
 	def ResetTimer(self):
-		timer = pg_local.TimeMgr.GetInstance()
+		timer = TimeMgr.GetInstance()
 
 		timer.ResetCombatTime()
 		timer.RemoveBattleTimer(self._calcTimer)
 		timer.RemoveBattleTimer(self._AITimer)
 
-		self._calcTimer = timer.AddBattleTimer("calcTimer", -1, ys_local.Battle.BattleConfig.calcInterval, lambda: self.calcUpdate())
+		self._calcTimer = timer.AddBattleTimer("calcTimer", -1, BattleConfig.calcInterval, lambda: self.calcUpdate())
 
 	def ActiveAutoComponentTimer(self):
-		self._AITimer = pg_local.TimeMgr.GetInstance().AddBattleTimer("aiTimer", -1, ys_local.Battle.BattleConfig.AIInterval, lambda: self.aiUpdate())
+		self._AITimer = TimeMgr.GetInstance().AddBattleTimer("aiTimer", -1, BattleConfig.AIInterval, lambda: self.aiUpdate())
 
 	def calcUpdate(self):
-		time = pg_local.TimeMgr.GetInstance().GetCombatTime()
+		time = TimeMgr.GetInstance().GetCombatTime()
 
 		for i in self._proxyList.values():
 			i.Update(time)
@@ -149,11 +151,11 @@ class Facade:
 			i.Update(time)
 
 	def aiUpdate(self):
-		self.GetProxyByName(ys_local.Battle.BattleDataProxy.__name).UpdateAutoComponent(pg_local.TimeMgr.GetInstance().GetCombatTime())
+		self.GetProxyByName(BattleDataProxy.__name).UpdateAutoComponent(TimeMgr.GetInstance().GetCombatTime())
 
 	def escapeUpdate(self):
-		battleDataProxy = self.GetProxyByName(ys_local.Battle.BattleDataProxy.__name)
-		time = pg_local.TimeMgr.GetInstance().GetCombatTime()
+		battleDataProxy = self.GetProxyByName(BattleDataProxy.__name)
+		time = TimeMgr.GetInstance().GetCombatTime()
 
 		battleDataProxy.UpdateEscapeOnly(time)
-		self.GetMediatorByName(ys_local.Battle.BattleSceneMediator.__name).UpdateEscapeOnly(time)
+		self.GetMediatorByName(BattleSceneMediator.__name).UpdateEscapeOnly(time)

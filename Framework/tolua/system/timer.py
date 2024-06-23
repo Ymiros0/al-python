@@ -1,6 +1,6 @@
 from luatable import table, setmetatable
-from Framework.tolua.event import UpdateBeat, CoUpdateBeat
-from Framework.tolua.unityengine.Time import Time
+from Framework.tolua.event import UpdateBeat, CoUpdateBeat #!
+from Framework.tolua.unityengine.Time import Time #!
 
 Timer = table(
 	loop = 1,

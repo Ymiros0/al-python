@@ -1,120 +1,120 @@
-local var_0_0 = import("...core.Controller")
-local var_0_1 = import("...core.Model")
-local var_0_2 = import("...core.View")
-local var_0_3 = import("..observer.Notification")
-local var_0_4 = class("Facade")
+from luatable import table
 
-def var_0_4.Ctor(arg_1_0, arg_1_1):
-	if var_0_4.instanceMap[arg_1_1] != None:
-		error(var_0_4.MULTITON_MSG)
+from Framework.puremvc.core.Controller import Controller
+from Framework.puremvc.core.Model import Model
+from Framework.puremvc.core.View import View
+from Framework.puremvc.patterns.observer.Notification import Notification
 
-	arg_1_0.initializeNotifier(arg_1_1)
+class Facade:
+	def __init__(self, instance_id):
+		if Facade.instanceMap[instance_id] != None:
+			raise BaseException(Facade.MULTITON_MSG)
 
-	var_0_4.instanceMap[arg_1_1] = arg_1_0
+		self.initializeNotifier(instance_id)
 
-	arg_1_0.initializeFacade()
+		Facade.instanceMap[instance_id] = self
 
-def var_0_4.initializeFacade(arg_2_0):
-	arg_2_0.initializeModel()
-	arg_2_0.initializeController()
-	arg_2_0.initializeView()
+		self.initializeFacade()
 
-def var_0_4.getInstance(arg_3_0):
-	if arg_3_0 == None:
-		return None
+	def initializeFacade(self):
+		self.initializeModel()
+		self.initializeController()
+		self.initializeView()
 
-	if var_0_4.instanceMap[arg_3_0] == None:
-		var_0_4.instanceMap[arg_3_0] = var_0_4.New(arg_3_0)
+	def getInstance(instance_id):
+		if instance_id == None:
+			return None
 
-	return var_0_4.instanceMap[arg_3_0]
+		if Facade.instanceMap[instance_id] == None:
+			Facade.instanceMap[instance_id] = instance_id.New(instance_id)
 
-def var_0_4.initializeController(arg_4_0):
-	if arg_4_0.controller != None:
-		return
+		return Facade.instanceMap[instance_id]
 
-	arg_4_0.controller = var_0_0.getInstance(arg_4_0.multitonKey)
+	def initializeController(self):
+		if self.controller != None:
+			return
 
-def var_0_4.initializeModel(arg_5_0):
-	if arg_5_0.model != None:
-		return
+		self.controller = Controller.getInstance(self.multitonKey)
 
-	arg_5_0.model = var_0_1.getInstance(arg_5_0.multitonKey)
+	def initializeModel(self):
+		if self.model != None:
+			return
 
-def var_0_4.initializeView(arg_6_0):
-	if arg_6_0.view != None:
-		return
+		self.model = Model.getInstance(self.multitonKey)
 
-	arg_6_0.view = var_0_2.getInstance(arg_6_0.multitonKey)
+	def initializeView(self):
+		if self.view != None:
+			return
 
-def var_0_4.registerCommand(arg_7_0, arg_7_1, arg_7_2):
-	assert(arg_7_2)
-	arg_7_0.controller.registerCommand(arg_7_1, arg_7_2)
+		self.view = View.getInstance(self.multitonKey)
 
-def var_0_4.removeCommand(arg_8_0, arg_8_1):
-	arg_8_0.controller.removeCommand(arg_8_1)
+	def registerCommand(self, arg_7_1, arg_7_2):
+		assert(arg_7_2)
+		self.controller.registerCommand(arg_7_1, arg_7_2)
 
-def var_0_4.hasCommand(arg_9_0, arg_9_1):
-	return arg_9_0.controller.hasCommand(arg_9_1)
+	def removeCommand(self, arg_8_1):
+		self.controller.removeCommand(arg_8_1)
 
-def var_0_4.registerProxy(arg_10_0, arg_10_1):
-	arg_10_0.model.registerProxy(arg_10_1)
+	def hasCommand(self, arg_9_1):
+		return self.controller.hasCommand(arg_9_1)
 
-def var_0_4.retrieveProxy(arg_11_0, arg_11_1):
-	return arg_11_0.model.retrieveProxy(arg_11_1)
+	def registerProxy(self, arg_10_1):
+		self.model.registerProxy(arg_10_1)
 
-def var_0_4.removeProxy(arg_12_0, arg_12_1):
-	local var_12_0
+	def retrieveProxy(self, arg_11_1):
+		return self.model.retrieveProxy(arg_11_1)
 
-	if arg_12_0.model != None:
-		var_12_0 = arg_12_0.model.removeProxy(arg_12_1)
+	def removeProxy(self, arg_12_1):
+		var_12_0
 
-	return var_12_0
+		if self.model != None:
+			var_12_0 = self.model.removeProxy(arg_12_1)
 
-def var_0_4.hasProxy(arg_13_0, arg_13_1):
-	return arg_13_0.model.hasProxy(arg_13_1)
+		return var_12_0
 
-def var_0_4.registerMediator(arg_14_0, arg_14_1):
-	if arg_14_0.view != None:
-		arg_14_0.view.registerMediator(arg_14_1)
+	def hasProxy(self, arg_13_1):
+		return self.model.hasProxy(arg_13_1)
 
-def var_0_4.retrieveMediator(arg_15_0, arg_15_1):
-	return arg_15_0.view.retrieveMediator(arg_15_1)
+	def registerMediator(self, arg_14_1):
+		if self.view != None:
+			self.view.registerMediator(arg_14_1)
 
-def var_0_4.removeMediator(arg_16_0, arg_16_1):
-	local var_16_0
+	def retrieveMediator(self, arg_15_1):
+		return self.view.retrieveMediator(arg_15_1)
 
-	if arg_16_0.view != None:
-		var_16_0 = arg_16_0.view.removeMediator(arg_16_1)
+	def removeMediator(self, arg_16_1):
+		var_16_0
 
-	return var_16_0
+		if self.view != None:
+			var_16_0 = self.view.removeMediator(arg_16_1)
 
-def var_0_4.hasMediator(arg_17_0, arg_17_1):
-	return arg_17_0.view.hasMediator(arg_17_1)
+		return var_16_0
 
-def var_0_4.sendNotification(arg_18_0, arg_18_1, arg_18_2, arg_18_3):
-	arg_18_0.notifyObservers(var_0_3.New(arg_18_1, arg_18_2, arg_18_3))
+	def hasMediator(self, arg_17_1):
+		return self.view.hasMediator(arg_17_1)
 
-def var_0_4.notifyObservers(arg_19_0, arg_19_1):
-	if arg_19_0.view != None:
-		arg_19_0.view.notifyObservers(arg_19_1)
+	def sendNotification(self, arg_18_1, arg_18_2, arg_18_3):
+		self.notifyObservers(Notification.New(arg_18_1, arg_18_2, arg_18_3))
 
-def var_0_4.initializeNotifier(arg_20_0, arg_20_1):
-	arg_20_0.multitonKey = arg_20_1
+	def notifyObservers(self, arg_19_1):
+		if self.view != None:
+			self.view.notifyObservers(arg_19_1)
 
-def var_0_4.hasCore(arg_21_0):
-	return var_0_4.instanceMap[arg_21_0] != None
+	def initializeNotifier(self, arg_20_1):
+		self.multitonKey = arg_20_1
 
-def var_0_4.removeCore(arg_22_0):
-	if var_0_4.instanceMap[arg_22_0] == None:
-		return
+	def hasCore(instance_id):
+		return Facade.instanceMap[instance_id] != None
 
-	var_0_1.removeModel(arg_22_0)
-	var_0_2.removeView(arg_22_0)
-	var_0_0.removeController(arg_22_0)
+	def removeCore(instance_id):
+		if Facade.instanceMap[instance_id] == None:
+			return
 
-	var_0_4.instanceMap[arg_22_0] = None
+		Model.removeModel(instance_id)
+		View.removeView(instance_id)
+		Controller.removeController(instance_id)
 
-var_0_4.instanceMap = {}
-var_0_4.MULTITON_MSG = "Facade instance for this Multiton key already constructed!"
+		Facade.instanceMap[instance_id] = None
 
-return var_0_4
+	instanceMap = table()
+	MULTITON_MSG = "Facade instance for this Multiton instance_id already constructed!"

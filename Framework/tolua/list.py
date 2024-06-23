@@ -169,8 +169,8 @@ class allist:
 		return copy
 
 def ilist(node):
-	f, s, v =  allist.next, node, node
-	while x := f(s,v):
+	f, v =  node.next, node
+	while x := f(v):
 		v , value = x
 		yield v, value
 
@@ -188,4 +188,5 @@ class Node(object):
 	def __init__(self,*args,**kwargs):
 		for k,v in kwargs.items():
 			setattr(self, k, v)
-		self.__class__ = type(self.__class__.__name__, (allist,), dict(self.__class__.__dict__))
+		if 'value' not in kwargs.keys():
+			self.__class__ = type(self.__class__.__name__, (allist,), dict(self.__class__.__dict__))

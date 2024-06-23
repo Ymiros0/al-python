@@ -2,7 +2,7 @@ from luatable import table, pairs, ipairs, Clone
 from Vector3 import Vector3
 from alsupport import math
 
-import PlayerPrefs #tolua
+from Framework.tolua.tolua import PlayerPrefs #!
 from Framework import underscore
 from luaex import GodenFnger
 
@@ -20,7 +20,6 @@ from data.buff import BattleBuffUnit
 from .. import BattleCardPuzzleEvent
 from model.const import ChapterConst, ShipType, TeamType
 from Framework.event import Event
-from support.utils import Tool
 from mgr import TimeMgr
 from mgr.sdk import SdkMgr
 from support.helpers.UnitySupport import onDelayTick

@@ -2,13 +2,13 @@ from luatable import table, pairs
 from Vector3 import Vector2
 from alsupport import math, Mathf
 
-from support.helpers.unitysupport import setActive
-from Framework.tolua.typeof import typeof
-from Framework.tolua.tolua import Camera, GameObject
+from support.helpers.UnitySupport import setActive #!
+from Framework.tolua.typeof import typeof #!
+from Framework.tolua.tolua import Camera, GameObject #!
 
 
 import BattleConfig
-import pg
+
 
 
 
@@ -31,7 +31,7 @@ class BattleVariable:
 
 		BattleVariable._lastCameraPos = None
 
-		var_1_0 = pg.UIMgr.GetInstance().GetMainCamera()
+		var_1_0 = UIMgr.GetInstance().GetMainCamera()
 
 		setActive(var_1_0, True)
 
@@ -82,7 +82,7 @@ class BattleVariable:
 			BattleVariable._lastCameraPos = var_3_0
 			BattleVariable._lastCameraSize = var_3_1
 
-		var_3_2 = pg.CameraFixMgr.GetInstance()
+		var_3_2 = CameraFixMgr.GetInstance()
 		var_3_3 = BattleVariable._camera.ScreenToWorldPoint(var_3_2.leftBottomVector)
 		var_3_4 = BattleVariable._camera.ScreenToWorldPoint(var_3_2.rightTopVector)
 		var_3_5 = BattleVariable._uiCamera.ScreenToWorldPoint(var_3_2.leftBottomVector)
@@ -114,7 +114,7 @@ class BattleVariable:
 
 	@staticmethod
 	def UIPosToScenePos(arg_6_0, arg_6_1):
-		var_6_0 = pg.CameraFixMgr.GetInstance()
+		var_6_0 = CameraFixMgr.GetInstance()
 		var_6_1 = var_6_0.GetCurrentWidth()
 		var_6_2 = var_6_0.GetCurrentHeight()
 		var_6_3 = var_6_1 / 1920

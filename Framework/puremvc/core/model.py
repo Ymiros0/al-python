@@ -1,54 +1,55 @@
-local var_0_0 = class("Model")
+from luatable import table
 
-def var_0_0.Ctor(arg_1_0, arg_1_1):
-	if var_0_0.instanceMap[arg_1_1]:
-		error(var_0_0.MULTITON_MSG)
+class Model:
 
-	arg_1_0.multitonKey = arg_1_1
-	var_0_0.instanceMap[arg_1_1] = arg_1_0
-	arg_1_0.proxyMap = {}
+	def __init__(arg_1_0, arg_1_1):
+		if Model.instanceMap[arg_1_1]:
+			raise BaseException(Model.MULTITON_MSG)
 
-	arg_1_0.initializeModel()
+		arg_1_0.multitonKey = arg_1_1
+		Model.instanceMap[arg_1_1] = arg_1_0
+		arg_1_0.proxyMap = table()
 
-def var_0_0.initializeModel(arg_2_0):
-	return
+		arg_1_0.initializeModel()
 
-def var_0_0.getInstance(arg_3_0):
-	if arg_3_0 == None:
-		return None
+	def initializeModel(self):
+		return
 
-	if var_0_0.instanceMap[arg_3_0] == None:
-		return var_0_0.New(arg_3_0)
-	else
-		return var_0_0.instanceMap[arg_3_0]
+	def getInstance(instance_id):
+		if instance_id == None:
+			return None
 
-def var_0_0.registerProxy(arg_4_0, arg_4_1):
-	arg_4_1.initializeNotifier(arg_4_0.multitonKey)
+		if Model.instanceMap[instance_id] == None:
+			return Model(instance_id)
+		else:
+			return Model.instanceMap[instance_id]
 
-	arg_4_0.proxyMap[arg_4_1.getProxyName()] = arg_4_1
+	def registerProxy(self, proxy):
+		proxy.initializeNotifier(self.multitonKey)
 
-	arg_4_1.onRegister()
+		self.proxyMap[proxy.getProxyName()] = proxy
 
-def var_0_0.retrieveProxy(arg_5_0, arg_5_1):
-	return arg_5_0.proxyMap[arg_5_1]
+		proxy.onRegister()
 
-def var_0_0.hasProxy(arg_6_0, arg_6_1):
-	return arg_6_0.proxyMap[arg_6_1] != None
+	def retrieveProxy(self, arg_5_1):
+		return self.proxyMap[arg_5_1]
 
-def var_0_0.removeProxy(arg_7_0, arg_7_1):
-	local var_7_0 = arg_7_0.proxyMap[arg_7_1]
+	def hasProxy(self, arg_6_1):
+		return self.proxyMap[arg_6_1] != None
 
-	if var_7_0 != None:
-		arg_7_0.proxyMap[arg_7_1] = None
+	def removeProxy(self, proxy_name):
+		proxy = self.proxyMap[proxy_name]
 
-		var_7_0.onRemove()
+		if proxy != None:
+			self.proxyMap[proxy_name] = None
 
-	return var_7_0
+			proxy.onRemove()
 
-def var_0_0.removeModel(arg_8_0):
-	var_0_0.instanceMap[arg_8_0] = None
+		return proxy
 
-var_0_0.instanceMap = {}
-var_0_0.MULTITON_MSG = "Model instance for this Multiton key already constructed!"
+	def removeModel(instance_id):
+		Model.instanceMap[instance_id] = None
 
-return var_0_0
+	instanceMap = table()
+	MULTITON_MSG = "Model instance for this Multiton key already constructed!"
+

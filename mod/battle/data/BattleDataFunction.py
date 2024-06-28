@@ -1,8 +1,6 @@
 from luatable import table, setmetatable
 from alsupport import math
-import ys
-import pg
-from support.helpers.m02 import getSkillName
+from support.helpers.M02 import getSkillName
 
 var_0_1 = ys.Battle.BattleConst
 var_0_2 = ys.Battle.BattleFormulas

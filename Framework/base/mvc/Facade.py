@@ -107,7 +107,7 @@ class Facade:
 
 		self._isPause = False
 
-		TimeMgr.GetInstance().ResumeBattleTimer()
+		TimeMgr().ResumeBattleTimer()
 
 	def Deactive(self):
 		if self._isPause:
@@ -115,22 +115,22 @@ class Facade:
 
 		self._isPause = True
 
-		TimeMgr.GetInstance().PauseBattleTimer()
+		TimeMgr().PauseBattleTimer()
 
 	def ActiveEscape(self):
-		self._escapeAITimer = TimeMgr.GetInstance().AddTimer("escapeTimer", 0, BattleConfig.viewInterval, lambda: self.escapeUpdate())
+		self._escapeAITimer = TimeMgr().AddTimer("escapeTimer", 0, BattleConfig.viewInterval, lambda: self.escapeUpdate())
 
 	def DeactiveEscape(self):
-		TimeMgr.GetInstance().RemoveTimer(self._escapeAITimer)
+		TimeMgr().RemoveTimer(self._escapeAITimer)
 
 	def RemoveAllTimer(self):
-		TimeMgr.GetInstance().RemoveAllBattleTimer()
+		TimeMgr().RemoveAllBattleTimer()
 
 		self._calcTimer = None
 		self._AITimer = None
 
 	def ResetTimer(self):
-		timer = TimeMgr.GetInstance()
+		timer = TimeMgr()
 
 		timer.ResetCombatTime()
 		timer.RemoveBattleTimer(self._calcTimer)
@@ -139,10 +139,10 @@ class Facade:
 		self._calcTimer = timer.AddBattleTimer("calcTimer", -1, BattleConfig.calcInterval, lambda: self.calcUpdate())
 
 	def ActiveAutoComponentTimer(self):
-		self._AITimer = TimeMgr.GetInstance().AddBattleTimer("aiTimer", -1, BattleConfig.AIInterval, lambda: self.aiUpdate())
+		self._AITimer = TimeMgr().AddBattleTimer("aiTimer", -1, BattleConfig.AIInterval, lambda: self.aiUpdate())
 
 	def calcUpdate(self):
-		time = TimeMgr.GetInstance().GetCombatTime()
+		time = TimeMgr().GetCombatTime()
 
 		for i in self._proxyList.values():
 			i.Update(time)
@@ -151,11 +151,11 @@ class Facade:
 			i.Update(time)
 
 	def aiUpdate(self):
-		self.GetProxyByName(BattleDataProxy.__name).UpdateAutoComponent(TimeMgr.GetInstance().GetCombatTime())
+		self.GetProxyByName(BattleDataProxy.__name).UpdateAutoComponent(TimeMgr().GetCombatTime())
 
 	def escapeUpdate(self):
 		battleDataProxy = self.GetProxyByName(BattleDataProxy.__name)
-		time = TimeMgr.GetInstance().GetCombatTime()
+		time = TimeMgr().GetCombatTime()
 
 		battleDataProxy.UpdateEscapeOnly(time)
 		self.GetMediatorByName(BattleSceneMediator.__name).UpdateEscapeOnly(time)

@@ -5,6 +5,8 @@ from alsupport import math, Mathf
 from support.helpers.UnitySupport import setActive #!
 from Framework.tolua.typeof import typeof #!
 from Framework.tolua.tolua import Camera, GameObject #!
+from mgr.UIMgr import UIMgr #!
+from mgr.fix.CameraFixMgr import CameraFixMgr #!
 
 
 import BattleConfig

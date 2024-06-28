@@ -29,6 +29,13 @@ class ALJsonAPI:
 	equip_converter: equips.EquipConverter
 	augment_converter: augments.AugmentConverter
 
+	def __new__(cls):
+		it = cls.__dict__.get("__it__")
+		if it is not None:
+			return it
+		cls.__it__ = it = object.__new__(cls)
+		return it
+
 	def __init__(self, loader: JsonLoader = None, source_path: Path = None) -> None:
 		"""
 		Initializes the JsonAPI. If neither *loader* nor *source_path* is given,
@@ -54,6 +61,7 @@ class ALJsonAPI:
 		if name == "augment_converter":
 			self.augment_converter = augments.load_converter(Constants.AUGMENT_CONVERT_CACHE_PATH)
 			return self.augment_converter
+		return self.get_sharecfgmodule(name)
 		raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 	### Module Loader Methods
@@ -154,3 +162,5 @@ class ALJsonAPI:
 		else:
 			return
 		return censoredstring
+
+pg = ALJsonAPI()

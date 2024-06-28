@@ -1,6 +1,6 @@
 from luatable import pairs, ipairs, table, Clone
 
-import ys
+
 import BattleConst
 import BattleConfig
 import BattleAttr

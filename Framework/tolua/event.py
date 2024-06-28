@@ -1,9 +1,12 @@
 from luatable import setmetatable, table, ipairs
 
 from Framework.tolua.unityengine.Time import Time
-xpcall
-pcall
-traceback #tolua.traceback
+import xpcall
+import pcall
+import traceback #tolua.traceback? debug.traceback?
+import packEx
+import unpackEx
+import jit
 from Framework.tolua.list import ilist
 def __call(arg_1_0, *args): #?????????????
 	if jit:

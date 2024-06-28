@@ -1,6 +1,8 @@
 from luatable import table, pairs, ipairs, Clone
 from Vector3 import Vector3
 from alsupport import math
+from lib import ALJsonAPI
+api = ALJsonAPI()
 
 from Framework.tolua.tolua import PlayerPrefs #!
 from Framework import underscore
@@ -223,6 +225,7 @@ class BattleDataProxy(proxy):
 		self._currentStageIndex = 1
 		self._battleInitData = arg_18_1
 		self._expeditionID = arg_18_1.StageTmpId
+		expedition_data_template = api.get_sharecfgmodule('expedition_data_template')
 		self._expeditionTmp = expedition_data_template[self._expeditionID] #use api
 
 		self.SetDungeonLevel(arg_18_1.WorldLevel or self._expeditionTmp.level)

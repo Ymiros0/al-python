@@ -1,6 +1,6 @@
 from luatable import table, ipairs
-from Framework.include import underscore
-import pg
+from Framework.Include import underscore
+
 QuZhu = 1
 QingXun = 2
 ZhongXun = 3
@@ -59,7 +59,7 @@ SpecificTableTips = table(
 )
 
 def Type2Name(arg_1_0):
-	return pg.ship_data_by_type[arg_1_0].type_name
+	return pg.ship_data_by_type[arg_1_0].type_name #Use api
 
 def Type2Print(arg_2_0):
 	if not prints:

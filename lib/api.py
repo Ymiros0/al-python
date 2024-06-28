@@ -336,6 +336,7 @@ class Module(metaclass=ABCMeta):
 	"""
 	# cache to hold reference to parsed apidata so it doesn't have to be parsed again
 	_cache: dict[Client, dict[str, ApiData]] = field(default_factory=dict, init=False, repr=False)
+	_client = Client.EN
 
 	def _load_from_cache(self, dataid: str, client: Client) -> Optional[ApiData]:
 		"""
@@ -395,7 +396,9 @@ class Module(metaclass=ABCMeta):
 				yield data
 
 	def __getitem__(self,id: Union[int, str]) -> Optional[ApiData]:
-		return self.load_first(id,Client)
+		return self.load_client(id,self._client)
+
+	__getattr__ = __getitem__
 
 	def load_first(self, dataid: Union[int, str], clients: Union[Client, Iterable[Client]]) -> Optional[ApiData]:
 		"""

@@ -2,11 +2,13 @@ import re
 from luatable import table, ipairs, pairs, setmetatable
 from alsupport import math, Mathf, getCompareFuncByPunctuation, getArithmeticFuncByOperator, tonumber, time
 from Vector3 import Vector3
+from lib import ALJsonAPI
+api = ALJsonAPI()
 
 
 
 import BattleConst
-gameset = pg.gameset #Use api
+gameset = api.get_sharecfgmodule('gameset')
 import BattleAttr
 import BattleConfig
 import BattleDataFunction

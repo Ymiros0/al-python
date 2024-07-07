@@ -1,10 +1,15 @@
 from random import random, randint
 import math
 import re
-from luatable import table, ipairs
-#from lib import Client, SharecfgModule, ALJsonAPI
 from functools import singledispatch
+
+from luatable import table, ipairs, pairs
 from Vector3 import Vector3
+
+def defaultValue(a,b):
+	if a == None:
+		return b
+	return a
 
 def randomb(a=None,b=None):
 	if a is not None and b is not None:
@@ -28,6 +33,11 @@ def uuid():
 
 def map(a,b,c,d,e):
 	return (a-b) / (c-b) * (e-d) + d
+
+def shuffle(a):
+	for i in range(len(a), 1, -1):
+		index = math.random(i) -1
+		a[index], a[i] = a[i], a[index]
 
 def sign(x):
 	return (x>0)-(x<0)
@@ -53,6 +63,30 @@ def MoveTowards(a, b, c):
 math.MoveTowards = MoveTowards
 
 math.DeltaAngle = lambda a, b: b-a-360 if (b-a)%360 > 180 else b-a
+
+math.MoveTowardsAngle = lambda a, b, c: MoveTowards(a, a + math.DeltaAngle(a, b), c)
+
+math.Approximately = lambda a, b: abs(a-b) < max(1e-6*max(abs(a),abs(b)), 1.121039e-44)
+
+def InverseLerp(a, b, c):
+	if a < b:
+		if c < a:
+			return 0
+		if b < c:
+			return 1
+		return (c-a)/(b-a)
+	if a == b:
+		return 0
+	if c < b:
+		return 1
+	if a < c:
+		return 0
+	return 1 - (c-b)/(a-b)
+
+math.PingPong = lambda a,b: b - abs(math.Repeat(a, b*2) - b)
+
+def calcFloor(a):
+	return int(a+1e-9)
 
 def getCompareFuncByPunctuation(x):
 	if not hasattr(math,'compareFuncList'):
@@ -122,7 +156,12 @@ class GameObject:
 	
 	def GetComponent(self, comp):
 		return comp
-	
+
+def intProperties(arg_22_0):
+	for iter_22_0, iter_22_1 in pairs(arg_22_0):
+		arg_22_0[iter_22_0] = calcFloor(iter_22_1)
+
+	return arg_22_0	
 
 def tonumber(obj):
 	try:
@@ -131,19 +170,6 @@ def tonumber(obj):
 		return i if i == f else f
 	except:
 		return None
-
-#api = ALJsonAPI()
-#class pg:
-#	def __getattr__(self, __name: str):
-#		return scmwrapper(api.get_sharecfgmodule(__name))
-	
-#class scmwrapper:
-#	def __init__(self, scm: SharecfgModule) -> None:
-#		self._scm = scm
-#	def __getattr__(self, __name: str):
-#		return tablify(self._scm.load_client(__name, Client.EN)._json)
-#	def __getitem__(self,__name:str):
-#		return tablify(self._scm.load_client(__name, Client.EN)._json)
 
 @singledispatch
 def tablify(ob):
@@ -169,3 +195,36 @@ def time(timetable:table):
 	timestring = f"{timetable.year} {timetable.month} {timetable.day} {timetable.hour or 12}:{timetable.minute or 0}:{timetable.second or 0}"
 	timetuple = time.strptime(timestring, "%Y %m %d %H:%M:%S")
 	return time.mktime(timetuple)
+
+class string:
+
+	def lower(s:str):
+		return s.lower()
+	
+	def upper(s:str):
+		return s.upper()
+
+from functools import reduce
+class bit:
+	def lshift(b, num):
+		return b << (num & 31)
+	def rshift(b,num):
+		return (b & 0xffffffff) >> num
+	def arshift(b, num):
+		return b >> (num & 31)
+	def bor(*args):
+		return reduce(lambda a,b: a | b, args)
+	def band(*args):
+		return reduce(lambda a,b: a & b, args)
+	def bxor(*args):
+		return reduce(lambda a,b: a ^ b, args)
+	def bnot(b):
+		return ~ b
+	def ror(n,rotations):
+		return 31&(n>>rotations|n<<(32-rotations))
+	def rol(n,rotations):
+		return 31&(n<<rotations|n>>(32-rotations))
+	def tohex(b, n=8):
+		return hex(b&(2**n-1))
+	def bswap(b):
+		int(f'{b:08b}'[::-1], 2)

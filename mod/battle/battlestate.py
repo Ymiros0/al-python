@@ -1,9 +1,40 @@
+from packages.luatable import pairs
+
+from controller.command.stage.AutoBotCommand import AutoBotCommand #!
+from controller.command.stage.AutoSubCommand import AutoSubCommand #!
 from Framework.base.mvc.Facade import Facade
-import ys
-
-
-
-
+from Framework.tolua.tolua import PlayerPrefs #!
+from Framework.tolua.event import UpdateBeat #!
+from const import *
+from data.BattleDataProxy import BattleDataProxy #!
+from mod.battle.data import BattleConst, BattleConfig
+from data.BattleVariable import BattleVariable #!
+from view.ui.BattleUIMediator import BattleUIMediator #!
+from command.BattleAirFightCommand import BattleAirFightCommand #!
+from command.BattleCardPuzzleCommand import BattleCardPuzzleCommand #!
+from command.BattleDuelArenaCommand import BattleDuelArenaCommand #!
+from command.BattleSingleChallengeCommand import BattleSingleChallengeCommand #!
+from command.BattleDodgemCommand import BattleDodgemCommand #!
+from command.BattleSubmarineRunCommand import BattleSubmarineRunCommand #!
+from command.BattleSubRoutineCommand import BattleSubRoutineCommand #!
+from command.BattleInheritDungeonCommand import BattleInheritDungeonCommand #!
+from command.BattleWorldBossCommand import BattleWorldBossCommand #!
+from command.BattleDebugCommand import BattleDebugCommand #!
+from command.BattleGuildBossCommand import BattleGuildBossCommand #!
+from command.BattleSingleDungeonCommand import BattleSingleDungeonCommand #!
+from command.BattleControllerWeaponCommand import BattleControllerWeaponCommand #!
+from command.BattleControllerCommand import BattleControllerCommand #!
+from view.BattleSceneMediator import BattleSceneMediator #!
+from view.BattleReferenceBoxMediator import BattleReferenceBoxMediator #!
+from view.BattleResourceManager import BattleResourceManager #!
+from view.bulletfactory.BattleBulletFactory import BattleBulletFactory #!
+from view.camera.BattleCameraUtil import BattleCameraUtil #!
+from localConfig import BATTLE_DEFAULT_UNIT_DETAIL
+from mgr.CriMgr import CriMgr #!
+from mgr.EffectMgr import EffectMgr #!
+from mgr.TimeMgr import TimeMgr #!
+from mgr.story.NewStoryMgr import NewStoryMgr #!
+from support.helpers.LuaSupport import gcAll #!
 
 class bfConsts:
 	DFT_CRIT_EFFECT = 1.5
@@ -89,26 +120,25 @@ class BattleState(Facade):
 	BATTLE_STATE_REPORT = "BATTLE_REPORT"
 
 	def __init__(self):
-		super().__new__(self)
-		self.ChangeState(self.BATTLE_STATE_IDLE)
+		self.ChangeState(BattleState.BATTLE_STATE_IDLE)
 
 	def IsAutoBotActive(arg_2_0):
 		var_2_0 = AutoBotCommand.GetAutoBotMark(arg_2_0)
 
-		return PlayerPrefs.GetInt("autoBotIsAcitve" .. var_2_0, 0) == 1 and AutoBotCommand.autoBotSatisfied()
+		return PlayerPrefs.GetInt("autoBotIsAcitve" + var_2_0, 0) == 1 and AutoBotCommand.autoBotSatisfied()
 
 	def IsAutoSubActive(arg_3_0):
-		local var_3_0 = AutoSubCommand.GetAutoSubMark(arg_3_0)
+		var_3_0 = AutoSubCommand.GetAutoSubMark(arg_3_0)
 
-		return PlayerPrefs.GetInt("autoSubIsAcitve" .. var_3_0, 0) == 1
+		return PlayerPrefs.GetInt("autoSubIsAcitve" + var_3_0, 0) == 1
 
 	def ChatUseable(arg_4_0):
-		local var_4_0 = PlayerPrefs.GetInt(HIDE_CHAT_FLAG)
-		local var_4_1 = not var_4_0 or var_4_0 != 1
-		local var_4_2 = arg_4_0.GetBattleType()
-		local var_4_3 = arg_4_0.IsAutoBotActive(var_4_2)
-		local var_4_4 = var_4_2 == SYSTEM_DUEL
-		local var_4_5 = var_4_2 == SYSTEM_CARDPUZZLE
+		var_4_0 = PlayerPrefs.GetInt(HIDE_CHAT_FLAG)
+		var_4_1 = not var_4_0 or var_4_0 != 1
+		var_4_2 = arg_4_0.GetBattleType()
+		var_4_3 = arg_4_0.IsAutoBotActive(var_4_2)
+		var_4_4 = var_4_2 == SYSTEM_DUEL
+		var_4_5 = var_4_2 == SYSTEM_CARDPUZZLE
 
 		return var_4_1 and (var_4_4 or var_4_3) and not var_4_5
 
@@ -121,58 +151,58 @@ class BattleState(Facade):
 	def SetBattleUI(arg_7_0, arg_7_1):
 		arg_7_0._baseUI = arg_7_1
 
-	def EnterBattle(arg_8_0, arg_8_1, arg_8_2):
-		pg.TimeMgr.GetInstance().ResetCombatTime()
-		arg_8_0.Active()
-		arg_8_0.ResetTimer()
+	def EnterBattle(self, arg_8_1, arg_8_2):
+		TimeMgr().ResetCombatTime()
+		self.Active()
+		self.ResetTimer()
 
-		arg_8_0._dataProxy = arg_8_0.AddDataProxy(var_0_0.Battle.BattleDataProxy.GetInstance())
-		arg_8_0._uiMediator = arg_8_0.AddMediator(var_0_0.Battle.BattleUIMediator.New())
+		self._dataProxy = self.AddDataProxy(BattleDataProxy())
+		self._uiMediator = self.AddMediator(BattleUIMediator())
 
 		if arg_8_1.battleType == SYSTEM_DUEL:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleDuelArenaCommand.New())
+			self._battleCommand = self.AddCommand(BattleDuelArenaCommand.New())
 
-			arg_8_0._battleCommand.ConfigBattleData(arg_8_1)
+			self._battleCommand.ConfigBattleData(arg_8_1)
 		elif arg_8_1.battleType == SYSTEM_CHALLENGE:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleSingleChallengeCommand.New())
+			self._battleCommand = self.AddCommand(BattleSingleChallengeCommand.New())
 
-			arg_8_0._battleCommand.ConfigBattleData(arg_8_1)
+			self._battleCommand.ConfigBattleData(arg_8_1)
 		elif arg_8_1.battleType == SYSTEM_DODGEM:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleDodgemCommand.New())
+			self._battleCommand = self.AddCommand(BattleDodgemCommand.New())
 		elif arg_8_1.battleType == SYSTEM_SUBMARINE_RUN:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleSubmarineRunCommand.New())
+			self._battleCommand = self.AddCommand(BattleSubmarineRunCommand.New())
 		elif arg_8_1.battleType == SYSTEM_SUB_ROUTINE:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleSubRoutineCommand.New())
+			self._battleCommand = self.AddCommand(BattleSubRoutineCommand.New())
 		elif arg_8_1.battleType == SYSTEM_HP_SHARE_ACT_BOSS or arg_8_1.battleType == SYSTEM_BOSS_EXPERIMENT:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleInheritDungeonCommand.New())
+			self._battleCommand = self.AddCommand(BattleInheritDungeonCommand.New())
 		elif arg_8_1.battleType == SYSTEM_WORLD_BOSS:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleWorldBossCommand.New())
+			self._battleCommand = self.AddCommand(BattleWorldBossCommand.New())
 		elif arg_8_1.battleType == SYSTEM_DEBUG:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleDebugCommand.New())
+			self._battleCommand = self.AddCommand(BattleDebugCommand.New())
 		elif arg_8_1.battleType == SYSTEM_AIRFIGHT:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleAirFightCommand.New())
+			self._battleCommand = self.AddCommand(BattleAirFightCommand.New())
 		elif arg_8_1.battleType == SYSTEM_GUILD:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleGuildBossCommand.New())
+			self._battleCommand = self.AddCommand(BattleGuildBossCommand.New())
 		elif arg_8_1.battleType == SYSTEM_CARDPUZZLE:
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleCardPuzzleCommand.New())
-		else
-			arg_8_0._battleCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleSingleDungeonCommand.New())
+			self._battleCommand = self.AddCommand(BattleCardPuzzleCommand.New())
+		else:
+			self._battleCommand = self.AddCommand(BattleSingleDungeonCommand.New())
 
-		arg_8_0._battleType = arg_8_1.battleType
-		arg_8_0._sceneMediator = arg_8_0.AddMediator(var_0_0.Battle.BattleSceneMediator.New())
-		arg_8_0._weaponCommand = arg_8_0.AddCommand(var_0_0.Battle.BattleControllerWeaponCommand.New())
+		self._battleType = arg_8_1.battleType
+		self._sceneMediator = self.AddMediator(BattleSceneMediator.New())
+		self._weaponCommand = self.AddCommand(BattleControllerWeaponCommand.New())
 
-		arg_8_0._dataProxy.InitBattle(arg_8_1)
+		self._dataProxy.InitBattle(arg_8_1)
 
 		if BATTLE_DEFAULT_UNIT_DETAIL:
-			arg_8_0.AddMediator(var_0_0.Battle.BattleReferenceBoxMediator.New())
-			arg_8_0.GetMediatorByName(var_0_0.Battle.BattleReferenceBoxMediator.__name).ActiveUnitDetail(True)
+			self.AddMediator(BattleReferenceBoxMediator.New())
+			self.GetMediatorByName(BattleReferenceBoxMediator.__name).ActiveUnitDetail(True)
 
 		if arg_8_2:
-			-- block empty
-		else
-			arg_8_0.ChangeState(BATTLE_STATE_OPENING)
-			UpdateBeat.Add(arg_8_0.Update, arg_8_0)
+			pass#-- block empty
+		else:
+			self.ChangeState(BattleState.BATTLE_STATE_OPENING)
+			UpdateBeat.Add(self.Update, self)
 
 	def GetSceneMediator(arg_9_0):
 		return arg_9_0._sceneMediator
@@ -194,7 +224,7 @@ class BattleState(Facade):
 		if not arg_14_0._isPause:
 			for iter_14_0, iter_14_1 in pairs(arg_14_0._mediatorList):
 				iter_14_1.Update()
-		else
+		else:
 			for iter_14_2, iter_14_3 in pairs(arg_14_0._mediatorList):
 				iter_14_3.UpdatePause()
 
@@ -207,20 +237,19 @@ class BattleState(Facade):
 	def ChangeState(arg_17_0, arg_17_1):
 		arg_17_0._state = arg_17_1
 
-		if arg_17_1 == BATTLE_STATE_OPENING:
+		if arg_17_1 == BattleState.BATTLE_STATE_OPENING:
 			arg_17_0._dataProxy.Start()
 
-			local var_17_0 = arg_17_0._dataProxy._dungeonInfo.beginStoy
+			var_17_0 = arg_17_0._dataProxy._dungeonInfo.beginStoy
 
 			if var_17_0:
-				pg.NewStoryMgr.GetInstance().Play(var_17_0, function()
-					arg_17_0._battleCommand.DoPrologue())
-			else
+				NewStoryMgr.GetInstance().Play(var_17_0, lambda: arg_17_0._battleCommand.DoPrologue())
+			else:
 				arg_17_0._battleCommand.DoPrologue()
-		elif arg_17_1 == BATTLE_STATE_FIGHT:
+		elif arg_17_1 == BattleState.BATTLE_STATE_FIGHT:
 			arg_17_0.ActiveAutoComponentTimer()
-		elif arg_17_1 == BATTLE_STATE_REPORT:
-			-- block empty
+		elif arg_17_1 == BattleState.BATTLE_STATE_REPORT:
+			pass#-- block empty
 
 	def GetUI(arg_19_0):
 		return arg_19_0._baseUI
@@ -231,19 +260,19 @@ class BattleState(Facade):
 	def BattleEnd(arg_21_0):
 		arg_21_0.disableCommon()
 
-		if arg_21_0._dataProxy.GetStatistics()._battleScore >= var_0_0.Battle.BattleConst.BattleScore.B:
+		if arg_21_0._dataProxy.GetStatistics()._battleScore >= BattleConst.BattleScore.B:
 			arg_21_0._dataProxy.CelebrateVictory(arg_21_0._dataProxy.GetFriendlyCode())
-			arg_21_0.reportDelayTimer(function()
-				arg_21_0.DoResult(), var_0_0.Battle.BattleConfig.CelebrateDuration)
-		else
+			arg_21_0.reportDelayTimer(lambda: arg_21_0.DoResult(), BattleConfig.CelebrateDuration)
+		else:
 			arg_21_0.DoResult()
 
 	def BattleTimeUp(arg_23_0):
 		arg_23_0.disableCommon()
 		arg_23_0.ActiveEscape()
-		arg_23_0.reportDelayTimer(function()
+		def _func():
 			arg_23_0.DeactiveEscape()
-			arg_23_0.DoResult(), var_0_0.Battle.BattleConfig.EscapeDuration)
+			arg_23_0.DoResult()
+		arg_23_0.reportDelayTimer(_func, BattleConfig.EscapeDuration)
 
 	def DoResult(arg_25_0):
 		arg_25_0._sceneMediator.PauseCharacterAction(True)
@@ -252,7 +281,7 @@ class BattleState(Facade):
 		arg_25_0._endFunc(arg_25_0._dataProxy.GetStatistics())
 
 	def ExitBattle(arg_26_0):
-		var_0_0.Battle.BattleCameraUtil.GetInstance().Clear()
+		BattleCameraUtil.GetInstance().Clear()
 
 		for iter_26_0, iter_26_1 in pairs(arg_26_0._mediatorList):
 			arg_26_0.RemoveMediator(iter_26_1)
@@ -263,14 +292,14 @@ class BattleState(Facade):
 		for iter_26_4, iter_26_5 in pairs(arg_26_0._proxyList):
 			arg_26_0.RemoveProxy(iter_26_5)
 
-		var_0_0.Battle.BattleConfig.BASIC_TIME_SCALE = 1
+		BattleConfig.BASIC_TIME_SCALE = 1
 
 		arg_26_0.RemoveAllTimer()
-		var_0_0.Battle.BattleResourceManager.GetInstance().Clear()
+		BattleResourceManager.GetInstance().Clear()
 
 		arg_26_0._takeoverProcess = None
 
-		arg_26_0.ChangeState(BATTLE_STATE_IDLE)
+		arg_26_0.ChangeState(BattleState.BATTLE_STATE_IDLE)
 
 		arg_26_0._baseUI = None
 		arg_26_0._endFunc = None
@@ -279,14 +308,14 @@ class BattleState(Facade):
 		arg_26_0._battleCommand = None
 		arg_26_0._weaponCommand = None
 
-		removeSingletonInstance(var_0_0.Battle.BattleDataProxy)
+		del BattleDataProxy.__it__
 
 		arg_26_0._dataProxy = None
 
-		var_0_0.Battle.BattleVariable.Clear()
-		var_0_0.Battle.BattleBulletFactory.DestroyFactory()
+		BattleVariable.Clear()
+		BattleBulletFactory.DestroyFactory()
 		UpdateBeat.Remove(arg_26_0.Update, arg_26_0)
-		pg.EffectMgr.GetInstance().ClearBattleEffectMap()
+		EffectMgr.GetInstance().ClearBattleEffectMap()
 
 		arg_26_0._timeScale = None
 		arg_26_0._timescalerCache = None
@@ -300,30 +329,30 @@ class BattleState(Facade):
 	def disableCommon(arg_28_0):
 		arg_28_0._weaponCommand.ActiveBot(False)
 		arg_28_0.ScaleTimer()
-		var_0_0.Battle.BattleCameraUtil.GetInstance().ResetFocus()
-		arg_28_0.ChangeState(BATTLE_STATE_REPORT)
+		BattleCameraUtil.GetInstance().ResetFocus()
+		arg_28_0.ChangeState(BattleState.BATTLE_STATE_REPORT)
 		arg_28_0._dataProxy.ClearAirFighterTimer()
 		arg_28_0._dataProxy.KillAllAircraft()
 		arg_28_0._sceneMediator.AllBulletNeutralize()
-		var_0_0.Battle.BattleCameraUtil.GetInstance().StopShake()
-		var_0_0.Battle.BattleCameraUtil.GetInstance().Deactive()
+		BattleCameraUtil.GetInstance().StopShake()
+		BattleCameraUtil.GetInstance().Deactive()
 		arg_28_0._uiMediator.DisableComponent()
 		arg_28_0.Deactive()
 
 	def reportDelayTimer(arg_29_0, arg_29_1, arg_29_2):
-		local var_29_0
+		var_29_0
 
-		local function var_29_1()
-			pg.TimeMgr.GetInstance().RemoveBattleTimer(var_29_0)
+		def var_29_1():
+			TimeMgr.GetInstance().RemoveBattleTimer(var_29_0)
 
 			var_29_0 = None
 
 			arg_29_1()
 
 		arg_29_0.RemoveAllTimer()
-		pg.TimeMgr.GetInstance().ResumeBattleTimer()
+		TimeMgr.GetInstance().ResumeBattleTimer()
 
-		var_29_0 = pg.TimeMgr.GetInstance().AddBattleTimer("", -1, arg_29_2, var_29_1)
+		var_29_0 = TimeMgr.GetInstance().AddBattleTimer("", -1, arg_29_2, var_29_1)
 
 	def SetTakeoverProcess(arg_31_0, arg_31_1):
 		assert(arg_31_0._takeoverProcess == None, "已经有接管的战斗过程，暂时没有定义这种逻辑")
@@ -345,11 +374,11 @@ class BattleState(Facade):
 		return arg_33_0._isPause
 
 	def Pause(arg_34_0):
-		local var_34_0 = arg_34_0._takeoverProcess
+		var_34_0 = arg_34_0._takeoverProcess
 
 		if var_34_0:
 			var_34_0.Pause()
-		else
+		else:
 			arg_34_0._pause()
 
 	def _pause(arg_35_0):
@@ -361,20 +390,20 @@ class BattleState(Facade):
 			arg_35_0.CacheTimescaler(arg_35_0._timeScale)
 			arg_35_0.ScaleTimer(1)
 
-		var_0_0.Battle.BattleCameraUtil.GetInstance().PauseCameraTween()
+		BattleCameraUtil.GetInstance().PauseCameraTween()
 
 	def Resume(arg_36_0):
-		if arg_36_0._state == BATTLE_STATE_IDLE:
-			arg_36_0.ChangeState(BATTLE_STATE_OPENING)
+		if arg_36_0._state == BattleState.BATTLE_STATE_IDLE:
+			arg_36_0.ChangeState(BattleState.BATTLE_STATE_OPENING)
 			UpdateBeat.Add(arg_36_0.Update, arg_36_0)
-		elif arg_36_0._state == BATTLE_STATE_REPORT:
+		elif arg_36_0._state == BattleState.BATTLE_STATE_REPORT:
 			return
 
-		local var_36_0 = arg_36_0._takeoverProcess
+		var_36_0 = arg_36_0._takeoverProcess
 
 		if var_36_0:
 			var_36_0.Resume()
-		else
+		else:
 			arg_36_0._resume()
 
 	def _resume(arg_37_0):
@@ -386,12 +415,12 @@ class BattleState(Facade):
 			arg_37_0.ScaleTimer(arg_37_0._timescalerCache)
 			arg_37_0.CacheTimescaler()
 
-		var_0_0.Battle.BattleCameraUtil.GetInstance().ResumeCameraTween()
+		BattleCameraUtil.GetInstance().ResumeCameraTween()
 
 	def ScaleTimer(arg_38_0, arg_38_1):
-		arg_38_1 = arg_38_1 or var_0_0.Battle.BattleConfig.BASIC_TIME_SCALE
+		arg_38_1 = arg_38_1 or BattleConfig.BASIC_TIME_SCALE
 
-		pg.TimeMgr.GetInstance().ScaleBattleTimer(arg_38_1)
+		TimeMgr.GetInstance().ScaleBattleTimer(arg_38_1)
 
 		arg_38_0._timeScale = arg_38_1
 
@@ -401,13 +430,13 @@ class BattleState(Facade):
 	def CacheTimescaler(arg_40_0, arg_40_1):
 		arg_40_0._timescalerCache = arg_40_1
 
-	def var_0_0.Battle.PlayBattleSFX(arg_41_0):
+	def PlayBattleSFX(arg_41_0):
 		if arg_41_0 != "":
-			pg.CriMgr.GetInstance().PlaySoundEffect_V3("event./" .. arg_41_0)
+			CriMgr.GetInstance().PlaySoundEffect_V3("event./" + arg_41_0)
 
 	def OpenConsole(arg_42_0):
 		arg_42_0._uiMediator.InitDebugConsole()
 		arg_42_0._uiMediator.ActiveDebugConsole()
 
 	def ActiveReference(arg_43_0):
-		arg_43_0._controllerCommand = arg_43_0.AddCommand(var_0_0.Battle.BattleControllerCommand.New())
+		arg_43_0._controllerCommand = arg_43_0.AddCommand(BattleControllerCommand.New())

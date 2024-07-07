@@ -1,102 +1,109 @@
-ys = ys or {}
+from packages.luatable import table, ipairs
 
-local var_0_0 = ys
-local var_0_1 = var_0_0.Battle.BattleUnitEvent
-local var_0_2 = var_0_0.Battle.BattleEvent
-local var_0_3 = class("BattleAirFightCommand", var_0_0.Battle.BattleSingleDungeonCommand)
+import BattleSingleDungeonCommand
+import BattleUnitEvent
+import BattleEvent
+from mod.battle.data import BattleConfig, BattleConst, BattleFormulas
+from mod.battle.data.manager.BattleWaveUpdater import BattleWaveUpdater #!
+from mod.battle.BattleState import BattleState
+from mod.battle.view.scene.BattlePopNumManager import BattlePopNumManager #!
+from mod.battle.view.characterfactory.BattleHPBarManager import BattleHPBarManager #!
+import controller.const.game as GAME
+from const import SYSTEM_AIRFIGHT
+from mgr.UIMgr import UIMgr #!
+from model.const import ShipType
+from support.helpers import M02
 
-var_0_0.Battle.BattleAirFightCommand = var_0_3
-var_0_3.__name = "BattleAirFightCommand"
+class BattleAirFightCommand(BattleSingleDungeonCommand):
+	__name = "BattleAirFightCommand"
 
-def var_0_3.Ctor(arg_1_0):
-	var_0_3.super.Ctor(arg_1_0)
+	def AddEvent(self, *args):
+		super().AddEvent(self, *args)
+		self._dataProxy.RegisterEventListener(self, BattleEvent.COMMON_DATA_INIT_FINISH, self.onBattleDataInitFinished)
 
-def var_0_3.AddEvent(arg_2_0, ...):
-	var_0_3.super.AddEvent(arg_2_0, ...)
-	arg_2_0._dataProxy.RegisterEventListener(arg_2_0, var_0_2.COMMON_DATA_INIT_FINISH, arg_2_0.onBattleDataInitFinished)
+	def RemoveEvent(self, *args):
+		self._dataProxy.UnregisterEventListener(self, BattleEvent.COMMON_DATA_INIT_FINISH)
+		super().RemoveEvent(self, *args)
 
-def var_0_3.RemoveEvent(arg_3_0, ...):
-	arg_3_0._dataProxy.UnregisterEventListener(arg_3_0, var_0_2.COMMON_DATA_INIT_FINISH)
-	var_0_3.super.RemoveEvent(arg_3_0, ...)
+	def DoPrologue(self):
+		UIMgr().Marching()
 
-def var_0_3.DoPrologue(arg_4_0):
-	pg.UIMgr.GetInstance().Marching()
+		def _function():
+			def _function2():
+				self._dataProxy.SetupCalculateDamage(BattleFormulas.FriendInvincibleDamage)
+				self._dataProxy.SetupDamageKamikazeShip(BattleFormulas.CalcDamageLockS2M)
+				self._dataProxy.SetupDamageCrush(BattleFormulas.FriendInvincibleCrashDamage)
+				self._uiMediator.ShowTimer()
+				self._state.ChangeState(BattleState.BATTLE_STATE_FIGHT)
+				self._waveUpdater.Start(), SYSTEM_AIRFIGHT
+			self._uiMediator.OpeningEffect(_function2)
+			self._dataProxy.InitAllFleetUnitsWeaponCD()
 
-	local function var_4_0()
-		arg_4_0._uiMediator.OpeningEffect(function()
-			arg_4_0._dataProxy.SetupCalculateDamage(var_0_0.Battle.BattleFormulas.FriendInvincibleDamage)
-			arg_4_0._dataProxy.SetupDamageKamikazeShip(var_0_0.Battle.BattleFormulas.CalcDamageLockS2M)
-			arg_4_0._dataProxy.SetupDamageCrush(var_0_0.Battle.BattleFormulas.FriendInvincibleCrashDamage)
-			arg_4_0._uiMediator.ShowTimer()
-			arg_4_0._state.ChangeState(var_0_0.Battle.BattleState.BATTLE_STATE_FIGHT)
-			arg_4_0._waveUpdater.Start(), SYSTEM_AIRFIGHT)
-		arg_4_0._dataProxy.InitAllFleetUnitsWeaponCD()
+		self._uiMediator.SeaSurfaceShift(1, 15, None, _function)
 
-	arg_4_0._uiMediator.SeaSurfaceShift(1, 15, None, var_4_0)
+		var_4_1 = self._state.GetSceneMediator()
 
-	local var_4_1 = arg_4_0._state.GetSceneMediator()
+		var_4_1.InitPopScorePool()
+		var_4_1.EnablePopContainer(BattlePopNumManager.CONTAINER_HP, False)
+		var_4_1.EnablePopContainer(BattlePopNumManager.CONTAINER_SCORE, False)
+		var_4_1.EnablePopContainer(BattleHPBarManager.ROOT_NAME, False)
+		self._uiMediator.ShowAirFightScoreBar()
 
-	var_4_1.InitPopScorePool()
-	var_4_1.EnablePopContainer(var_0_0.Battle.BattlePopNumManager.CONTAINER_HP, False)
-	var_4_1.EnablePopContainer(var_0_0.Battle.BattlePopNumManager.CONTAINER_SCORE, False)
-	var_4_1.EnablePopContainer(var_0_0.Battle.BattleHPBarManager.ROOT_NAME, False)
-	arg_4_0._uiMediator.ShowAirFightScoreBar()
+	def initWaveModule(self):
+		def var_7_0(arg_8_0, arg_8_1, arg_8_2):
+			self._dataProxy.SpawnMonster(arg_8_0, arg_8_1, arg_8_2, BattleConfig.FOE_CODE)
 
-def var_0_3.initWaveModule(arg_7_0):
-	local function var_7_0(arg_8_0, arg_8_1, arg_8_2)
-		arg_7_0._dataProxy.SpawnMonster(arg_8_0, arg_8_1, arg_8_2, var_0_0.Battle.BattleConfig.FOE_CODE)
+		def var_7_1():
+			if self._vertifyFail:
+				M02.sendNotification(GAME.CHEATER_MARK, table(
+					reason = self._vertifyFail
+				))
 
-	local function var_7_1()
-		if arg_7_0._vertifyFail:
-			pg.m02.sendNotification(GAME.CHEATER_MARK, {
-				reason = arg_7_0._vertifyFail
-			})
+				return
 
-			return
+			self._dataProxy.CalcAirFightScore()
+			self._state.BattleEnd()
 
-		arg_7_0._dataProxy.CalcAirFightScore()
-		arg_7_0._state.BattleEnd()
+		self._waveUpdater = BattleWaveUpdater.New(var_7_0, None, var_7_1, None)
 
-	arg_7_0._waveUpdater = var_0_0.Battle.BattleWaveUpdater.New(var_7_0, None, var_7_1, None)
+	def onBattleDataInitFinished(self):
+		self._dataProxy.AirFightInit()
 
-def var_0_3.onBattleDataInitFinished(arg_10_0):
-	arg_10_0._dataProxy.AirFightInit()
+		var_10_0 = self._userFleet.GetScoutList()
 
-	local var_10_0 = arg_10_0._userFleet.GetScoutList()
+		for iter_10_0, iter_10_1 in ipairs(var_10_0):
+			iter_10_1.HideWaveFx()
 
-	for iter_10_0, iter_10_1 in ipairs(var_10_0):
-		iter_10_1.HideWaveFx()
+	def RegisterUnitEvent(self, arg_11_1, *args):
+		super().RegisterUnitEvent(self, arg_11_1, *args)
 
-def var_0_3.RegisterUnitEvent(arg_11_0, arg_11_1, ...):
-	var_0_3.super.RegisterUnitEvent(arg_11_0, arg_11_1, ...)
+		if arg_11_1.GetUnitType() == BattleConst.UnitType.PLAYER_UNIT:
+			arg_11_1.RegisterEventListener(self, BattleUnitEvent.UPDATE_HP, self.onPlayerHPUpdate)
 
-	if arg_11_1.GetUnitType() == var_0_0.Battle.BattleConst.UnitType.PLAYER_UNIT:
-		arg_11_1.RegisterEventListener(arg_11_0, var_0_1.UPDATE_HP, arg_11_0.onPlayerHPUpdate)
+	def UnregisterUnitEvent(self, arg_12_1, *args):
+		if arg_12_1.GetUnitType() == BattleConst.UnitType.PLAYER_UNIT:
+			arg_12_1.UnregisterEventListener(self, BattleUnitEvent.UPDATE_HP)
 
-def var_0_3.UnregisterUnitEvent(arg_12_0, arg_12_1, ...):
-	if arg_12_1.GetUnitType() == var_0_0.Battle.BattleConst.UnitType.PLAYER_UNIT:
-		arg_12_1.UnregisterEventListener(arg_12_0, var_0_1.UPDATE_HP)
+		super().UnregisterUnitEvent(self, arg_12_1, *args)
 
-	var_0_3.super.UnregisterUnitEvent(arg_12_0, arg_12_1, ...)
+	ShipType2Point = table({
+		ShipType.YuLeiTing: 200,
+		ShipType.JinBi: 300,
+		ShipType.ZiBao: 3000
+	})
+	BeenHitDecreasePoint = 10
 
-var_0_3.ShipType2Point = {
-	[ShipType.YuLeiTing] = 200,
-	[ShipType.JinBi] = 300,
-	[ShipType.ZiBao] = 3000
-}
-var_0_3.BeenHitDecreasePoint = 10
+	def onWillDie(self, arg_13_1):
+		var_13_0 = arg_13_1.Dispatcher
+		var_13_1 = var_13_0.GetDeathReason()
+		var_13_2 = var_13_0.GetTemplate().type
 
-def var_0_3.onWillDie(arg_13_0, arg_13_1):
-	local var_13_0 = arg_13_1.Dispatcher
-	local var_13_1 = var_13_0.GetDeathReason()
-	local var_13_2 = var_13_0.GetTemplate().type
+		if var_13_1 == BattleConst.UnitDeathReason.CRUSH or var_13_1 == BattleConst.UnitDeathReason.KILLED:
+			var_13_3 = self.ShipType2Point[var_13_2]
 
-	if var_13_1 == var_0_0.Battle.BattleConst.UnitDeathReason.CRUSH or var_13_1 == var_0_0.Battle.BattleConst.UnitDeathReason.KILLED:
-		local var_13_3 = var_0_3.ShipType2Point[var_13_2]
+			if var_13_3 and var_13_3 > 0:
+				self._dataProxy.AddAirFightScore(var_13_3)
 
-		if var_13_3 and var_13_3 > 0:
-			arg_13_0._dataProxy.AddAirFightScore(var_13_3)
-
-def var_0_3.onPlayerHPUpdate(arg_14_0, arg_14_1):
-	if arg_14_1.Data.dHP <= 0:
-		arg_14_0._dataProxy.DecreaseAirFightScore(var_0_3.BeenHitDecreasePoint * -arg_14_1.Data.dHP)
+	def onPlayerHPUpdate(self, arg_14_1):
+		if arg_14_1.Data.dHP <= 0:
+			self._dataProxy.DecreaseAirFightScore(self.BeenHitDecreasePoint * -arg_14_1.Data.dHP)

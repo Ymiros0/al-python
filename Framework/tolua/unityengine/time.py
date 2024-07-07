@@ -1,7 +1,7 @@
 from luatable import table, setmetatable
 
-from tolua import UnityEngine
-old_time = UnityEngine.Time
+from tolua import UnityEngine #!
+old_time = UnityEngine.Time #!
 import time
 
 meta = table(

@@ -1,17 +1,17 @@
-from luatable import pairs, table
+from packages.luatable import pairs, table
 import math
-from alsupport import tonumber
+from packages.alsupport import tonumber
 
 
-from Framework.tolua.unityengine.Time import Time
-import TimeUtil
-from Framework.tolua.event import UpdateBeat
-import os
-from Framework.tolua.system.Timer import Timer
-from RunPaintingFilte import PLATFORM_CODE, PLATFORM_US
+from Framework.tolua.unityengine.Time import Time #!
+import TimeUtil #????
+from Framework.tolua.event import UpdateBeat #!
+import os #????
+from Framework.tolua.system.Timer import Timer #!
+from RunPaintingFilte import PLATFORM_CODE, PLATFORM_US #!
 from support.helpers.LuaSupport import originalPrint
 from support.helpers.M02 import NumberToChinese
-from Framework import underscore
+from Framework import underscore #!
 
 
 class TimeMgr: #singleton!
@@ -27,7 +27,14 @@ class TimeMgr: #singleton!
 	var_0_3 = 86400
 	var_0_4 = 604800
 
-	def Ctor(self):
+	def __new__(cls):
+		it = cls.__dict__.get("__it__")
+		if it is not None:
+			return it
+		cls.__it__ = it = object.__new__(cls)
+		return it
+
+	def __init__(self):
 		self._battleTimerList = table()
 
 	def Init(self):

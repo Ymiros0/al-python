@@ -16,13 +16,16 @@ class table(UserDict):
 			return
 		if callable(fallback): return fallback(tab, *args)
 		return getattr(fallback,IMPLEMENTED[method])(*args)
-		
+	
+	def _sequential(self):
+		return all(x == y for x, y in zip(self.keys(), range(len(self))))
+
 	def __init__(self, *args, **kwargs):
 		try: super().__init__(*args, **kwargs)
 		except: super().__init__(enumerate(args))
 
 	def __getattr__(self, __name: str) -> Any:
-		if __name == '_meta':
+		if __name in ('data', '_meta'):
 			return
 		return self[__name]
 	
@@ -37,6 +40,8 @@ class table(UserDict):
 			key = int(key)
 		if (ret := self.data.get(key)) is not None:
 			return ret
+		if type(key) == int and key < 0 and self._sequential():
+			return self[len(self)+key]
 		return self._metatable(self,'__index',key)
 	
 	def __setitem__(self, key: Any, item: Any) -> None:
@@ -137,6 +142,9 @@ class table(UserDict):
 	
 	def sort(self, func = lambda a, b: a - b):
 		return sorted(self, key = lambda x: cmp_to_key(func)(self[x]))
+
+	def concat(self, s:str) -> str:
+		return s.join(str(v) for v in self.values())
 
 def pairs(tab:table) -> ItemsView:
 	return tab.items()

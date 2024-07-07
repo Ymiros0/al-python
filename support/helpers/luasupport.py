@@ -1,16 +1,16 @@
-local var_0_0 = print
 
-def originalPrint(...):
+
+def originalPrint(*args):
 	if IsUnityEditor:
-		var_0_0(debug.traceback(printEx(...), 2))
-	else
-		var_0_0(printEx(...))
+		print(debug.traceback(printEx(*args), 2))
+	else:
+		print(printEx(*args))
 
 if IsUnityEditor:
-	function print(...)
-		var_0_0(debug.traceback(printEx(...), 2))
-else
-	function print()
+	def print(*args):
+		print(debug.traceback(printEx(*args), 2))
+else:
+	def print():
 		return
 
 local var_0_1 = setmetatable({}, {

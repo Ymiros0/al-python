@@ -8,19 +8,18 @@ var_0_0.__index = var_0_0
 def __call(arg_1_0, arg_1_1):
 	return var_0_0.new(arg_1_1)
 
-def new(arg_2_0, arg_2_1, arg_2_2):
+def new(arg_2_0, arg_2_1=None, arg_2_2=None):
 	return setmetatable(table(
 		_val = arg_2_1,
 		chained = arg_2_2 or False
 	), arg_2_0)
 
 def iter(arg_3_0):
-	if type(arg_3_0) == "function":
+	if type(arg_3_0) == function:
 		return arg_3_0
 
-	return coroutine.wrap(function()
-		for i in arg_3_0:
-			coroutine.yield(i))
+	for i in arg_3_0:
+		yield(i)
 
 def range(arg_5_0, arg_5_1, arg_5_2):
 	if arg_5_1 == None:
@@ -29,11 +28,9 @@ def range(arg_5_0, arg_5_1, arg_5_2):
 
 	arg_5_2 = arg_5_2 or 1
 
-	var_5_0 = coroutine.wrap(function()
-		for iter_6_0 = arg_5_0, arg_5_1, arg_5_2:
-			coroutine.yield(iter_6_0))
+	var_5_0 = (i for i in range(arg_5_0, arg_5_1, arg_5_2))
 
-	return var_0_0.new(var_5_0)
+	return new(var_5_0)
 
 def identity(arg_7_0):
 	return arg_7_0
@@ -47,14 +44,14 @@ def value(arg_9_0):
 	return arg_9_0._val
 
 funcs = table()
-def _each(arg_10_0, arg_10_1):
+def each(arg_10_0, arg_10_1):
 	for iter_10_0 in var_0_0.iter(arg_10_0):
 		arg_10_1(iter_10_0)
 
 	return arg_10_0
-funcs.each = _each
+funcs.each = each
 
-def _map(arg_11_0, arg_11_1):
+def map(arg_11_0, arg_11_1):
 	var_11_0 = {}
 
 	for iter_11_0 in var_0_0.iter(arg_11_0):
@@ -62,13 +59,14 @@ def _map(arg_11_0, arg_11_1):
 
 
 	return var_11_0
-funcs.map = _map
+funcs.map = map
 
-def var_0_0.funcs.reduce(arg_12_0, arg_12_1, arg_12_2):
+def reduce(arg_12_0, arg_12_1, arg_12_2):
 	for iter_12_0 in var_0_0.iter(arg_12_0):
 		arg_12_1 = arg_12_2(arg_12_1, iter_12_0)
 
 	return arg_12_1
+funcs.reduce = reduce
 
 def var_0_0.funcs.detect(arg_13_0, arg_13_1):
 	for iter_13_0 in var_0_0.iter(arg_13_0):

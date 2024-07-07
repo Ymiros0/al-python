@@ -23,14 +23,14 @@ class Timer:
 	scale = False
 
 	def New(func, duration, loop=1, scale=False):
-		assert duration > 0, f"定时器间隔不能小于等于0！：table(arg_1_1)"
+		assert duration > 0, f"The timer interval cannot be less than or equal to 0！：{duration}"
 
 		scale = scale and True	
 		loop = loop or 1
 		return setmetatable(table(func = func, duration = duration, time = duration, loop = loop, scale = scale, running = False), mt)	
 
 	def Start(arg_2_0):
-		assert(arg_2_0.running == False, "对已经启动的定时器执行启动！")
+		assert arg_2_0.running == False, "Perform start on a timer that has already been started!"
 
 		arg_2_0.running = True
 		arg_2_0.paused = None
@@ -43,7 +43,7 @@ class Timer:
 	def Reset(arg_3_0, arg_3_1, arg_3_2, arg_3_3, arg_3_4):
 		arg_3_0.duration = arg_3_2 or arg_3_0.duration
 
-		assert arg_3_0.duration > 0, f"定时器间隔不能小于等于0！：{arg_3_0.duration}"
+		assert arg_3_0.duration > 0, f"The timer interval cannot be less than or equal to 0! : {arg_3_0.duration}"
 
 		arg_3_0.loop = arg_3_3 or arg_3_0.loop
 		arg_3_0.scale = arg_3_4 or arg_3_0.scale

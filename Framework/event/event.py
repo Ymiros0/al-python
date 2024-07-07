@@ -1,13 +1,8 @@
-ys = ys or {}
+class Event:
+	__name = "Event"
 
-local var_0_0 = ys
+	def __init__(self, id, data, dispatcher):
+		self.ID = id
+		self.Data = data
+		self.Dispatcher = dispatcher
 
-var_0_0.Event = class("Event")
-var_0_0.Event.__name = "Event"
-
-def var_0_0.Event.Ctor(arg_1_0, arg_1_1, arg_1_2, arg_1_3):
-	arg_1_0.ID = arg_1_1
-	arg_1_0.Data = arg_1_2
-	arg_1_0.Dispatcher = arg_1_3
-
-return var_0_0.Event

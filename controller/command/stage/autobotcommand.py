@@ -1,81 +1,101 @@
-local var_0_0 = class("AutoBotCommand", pm.SimpleCommand)
 
-def var_0_0.execute(arg_1_0, arg_1_1):
-	local var_1_0 = arg_1_1.getBody()
-	local var_1_1 = var_1_0.isActiveBot
-	local var_1_2 = var_1_0.toggle
-	local var_1_3 = var_1_0.system
-	local var_1_4 = var_0_0.GetAutoBotMark(var_1_3)
+from luatable import table
 
-	if var_0_0.autoBotSatisfied():
-		if PlayerPrefs.GetInt("autoBotIsAcitve" .. var_1_4, 0) == not var_1_1:
-			-- block empty
-		else
-			PlayerPrefs.SetInt("autoBotIsAcitve" .. var_1_4, not var_1_1 and 1 or 0)
-			var_0_0.activeBotHelp(not var_1_1)
-	elif not var_1_1:
-		if var_1_2:
-			onDelayTick(function()
-				GetComponent(var_1_2, typeof(Toggle)).isOn = False, 0.1)
+from Framework.puremvc.patterns.command.SimpleCommand import SimpleCommand
+from const import *
+from support.helpers.UnitySupport import onDelayTick, GetComponent #!
+from support.helpers.M02 import getProxy #!
+from Framework.tolua.typeof import typeof #!
+from Framework.tolua.tolua import Toggle, PlayerPrefs #!
+from mgr import TipsMgr, MsgboxMgr #!
+from mgr.const import LayerWeightConst
+from Framework.i18n import i18n #!
+import controller.const.game as GAME
+from model.proxy.chapterproxy import ChapterProxy #!
+from model.proxy.PlayerProxy import PlayerProxy #!
+from model.proxy.SettingsProxy import SettingsProxy #!
 
-		pg.TipsMgr.GetInstance().ShowTips(i18n("auto_battle_limit_tip"))
+class AutoBotCommand(SimpleCommand):
+	def execute(self, arg_1_1):
+		var_1_0 = arg_1_1.getBody()
+		bot_active = var_1_0.isActiveBot
+		toggle = var_1_0.toggle
+		system = var_1_0.system
+		auto_bot_mark = self.GetAutoBotMark(system)
 
-	if var_1_1:
-		arg_1_0.sendNotification(GAME.AUTO_SUB, {
-			isActiveSub = True,
-			system = var_1_3
-		})
+		if self.autoBotSatisfied():
+			if PlayerPrefs.GetInt("autoBotIsAcitve" + auto_bot_mark, 0) == (not bot_active):
+				pass #-- block empty
+			else:
+				PlayerPrefs.SetInt("autoBotIsAcitve" + auto_bot_mark, not bot_active and 1 or 0)
+				self.activeBotHelp(not bot_active)
+		elif not bot_active:
+			if toggle:
+				def turn_off_toggle():
+					GetComponent(toggle, typeof(Toggle)).isOn = False
+				onDelayTick(turn_off_toggle, 0.1)
 
-def var_0_0.autoBotSatisfied():
-	local var_3_0 = getProxy(ChapterProxy)
+			TipsMgr.GetInstance().ShowTips(i18n("auto_battle_limit_tip"))
 
-	return var_3_0 and var_3_0.getChapterById(AUTO_ENABLE_CHAPTER).isClear()
+		if bot_active:
+			self.sendNotification(GAME.AUTO_SUB, table(
+				isActiveSub = True,
+				system = system
+			))
 
-def var_0_0.activeBotHelp(arg_4_0):
-	local var_4_0 = getProxy(PlayerProxy)
+	@staticmethod
+	def autoBotSatisfied():
+		var_3_0 = getProxy(ChapterProxy)
 
-	if not arg_4_0:
-		if var_0_0.autoBotHelp:
-			pg.MsgboxMgr.GetInstance().hide()
+		return var_3_0 and var_3_0.getChapterById(AUTO_ENABLE_CHAPTER).isClear()
 
-		return
+	@staticmethod
+	def activeBotHelp(arg_4_0):
+		var_4_0 = getProxy(PlayerProxy)
 
-	if var_4_0.botHelp:
-		return
+		if not arg_4_0:
+			if autoBotHelp:
+				MsgboxMgr.GetInstance().hide()
 
-	var_0_0.autoBotHelp = True
+			return
 
-	if getProxy(SettingsProxy).isTipAutoBattle():
-		pg.MsgboxMgr.GetInstance().ShowMsgBox({
-			showStopRemind = True,
-			toggleStatus = True,
-			type = MSGBOX_TYPE_HELP,
-			helps = i18n("help_battle_auto"),
-			custom = {
-				{
-					text = "text_iknow",
-					sound = SFX_CANCEL,
-					def onCallback:()
-						if pg.MsgboxMgr.GetInstance().stopRemindToggle.isOn:
-							getProxy(SettingsProxy).setAutoBattleTip()
-				}
-			},
-			def onClose:()
-				var_0_0.autoBotHelp = False
+		if var_4_0.botHelp:
+			return
 
-				if pg.MsgboxMgr.GetInstance().stopRemindToggle.isOn:
-					getProxy(SettingsProxy).setAutoBattleTip(),
-			weight = LayerWeightConst.TOP_LAYER
-		})
+		autoBotHelp = True
 
-	var_4_0.botHelp = True
+		if getProxy(SettingsProxy).isTipAutoBattle():
+			def onCallback():
+				if MsgboxMgr.GetInstance().stopRemindToggle.isOn:
+					getProxy(SettingsProxy).setAutoBattleTip()
+			def onClose():
+				autoBotHelp = False
 
-def var_0_0.GetAutoBotMark(arg_7_0):
-	if arg_7_0 == SYSTEM_WORLD or arg_7_0 == SYSTEM_WORLD_BOSS:
-		return "_" .. SYSTEM_WORLD
-	elif arg_7_0 == SYSTEM_GUILD:
-		return "_" .. SYSTEM_GUILD
-	else
-		return ""
+				if MsgboxMgr.GetInstance().stopRemindToggle.isOn:
+					getProxy(SettingsProxy).setAutoBattleTip()
+			MsgboxMgr.GetInstance().ShowMsgBox(table(
+				showStopRemind = True,
+				toggleStatus = True,
+				type = MsgboxMgr.MSGBOX_TYPE_HELP,
+				helps = i18n("help_battle_auto"),
+				onCallback = onCallback,
+				custom = table(
+					table(
+						text = "text_iknow",
+						sound = SFX_CANCEL,
+					)
+				),
+				onClose = onClose,
+				weight = LayerWeightConst.TOP_LAYER
+			))
 
-return var_0_0
+		var_4_0.botHelp = True
+
+	@staticmethod
+	def GetAutoBotMark(system):
+		if system == SYSTEM_WORLD or system == SYSTEM_WORLD_BOSS:
+			return "_" + SYSTEM_WORLD
+		elif system == SYSTEM_GUILD:
+			return "_" + SYSTEM_GUILD
+		else:
+			return ""

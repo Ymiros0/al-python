@@ -1,18 +1,18 @@
-local var_0_0 = class("ItemRarity")
+from packages.alsupport import math
 
-var_0_0.Gray = 1
-var_0_0.Blue = 2
-var_0_0.Purple = 3
-var_0_0.Gold = 4
-var_0_0.SSR = 5
+Gray = 1
+Blue = 2
+Purple = 3
+Gold = 4
+SSR = 5
 
-def var_0_0.Rarity2Print(arg_1_0):
+def Rarity2Print(arg_1_0):
 	if math.clamp(arg_1_0, 1, 9) == arg_1_0:
-		return tostring(arg_1_0)
-	else
-		return var_0_0.Gray
+		return str(arg_1_0)
+	else:
+		return Gray
 
-var_0_0.colors = {
+colors = {
 	"FFFFFFFF",
 	"41D7FFFF",
 	"CC7BFFFF",
@@ -24,10 +24,10 @@ var_0_0.colors = {
 	"FDC637FF"
 }
 
-def var_0_0.Rarity2HexColor(arg_2_0):
-	return var_0_0.colors[arg_2_0]
+def Rarity2HexColor(arg_2_0):
+	return colors[arg_2_0]
 
-var_0_0.frameColors = {
+frameColors = {
 	"BDBDBDFF",
 	"65C7FFFF",
 	"BFA3FFFF",
@@ -39,7 +39,5 @@ var_0_0.frameColors = {
 	"FFE743FF"
 }
 
-def var_0_0.Rarity2FrameHexColor(arg_3_0):
-	return var_0_0.frameColors[arg_3_0]
-
-return var_0_0
+def Rarity2FrameHexColor(arg_3_0):
+	return frameColors[arg_3_0]
